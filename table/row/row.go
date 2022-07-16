@@ -1,4 +1,4 @@
-package table
+package row
 
 import "fmt"
 
@@ -12,5 +12,5 @@ type Row struct {
 }
 
 func (r *Row) Print() {
-	fmt.Printf("(%d, %s, %s)", r.Id, string(r.Username[:]), string(r.Email[:]))
+	fmt.Printf("(id -> %d, username -> %s, email -> %s)\n", r.Id, string(r.Username[:]), string(r.Email[:]))
 }

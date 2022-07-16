@@ -1,18 +1,29 @@
-package model
+package table
 
-const TableMaxRows = 40960
+import "com.fadinglight/database/table/row"
+
+const MaxRows = 40960
 
 type Table struct {
-	NumRows uint32
-	Rows    []Row
+	Rows []row.Row
 }
 
-func (t *Table) init() {
-	t.NumRows = 0
-	t.Rows = make([]Row, 0, TableMaxRows)
+func (t *Table) init() *Table {
+	t.Rows = make([]row.Row, 0, MaxRows)
+	return t
 }
 
-func New() *Table { return new(Table) }
+func New() *Table { return new(Table).init() }
+
+func (t *Table) Free() {
+	t.Rows = nil
+}
+
 func (t *Table) IsFull() bool {
-	return t.NumRows == TableMaxRows
+	return len(t.Rows) == cap(t.Rows)
+}
+
+func (t *Table) Append(row2 *row.Row) *Table {
+	t.Rows = append(t.Rows, *row2)
+	return t
 }
