@@ -29,3 +29,23 @@ string(r1)
 string(r1[:])
 
 ```
+
+## Go的标准输入，如何读取一行输入
+
+因为 `fmt.Scan` `fmt.Scanf` `fmt.Scanln` 都是遇到空格结束输入，所以都无法读取一行输入
+
+有两种解决方法
+
+```go
+// 1. bufio.NewScanner
+scanner := bufio.NewScanner(os.Stdin)
+scanner.Scan()
+input := scanner.Text()
+input = string.TrimSpace(input)
+
+// 2. bufio.NewReader
+reader := bufio.NewReader(os.Stdin)
+input, _ := reader.ReaderString('\n')
+input = strings.TrimSpace(input)
+
+```
