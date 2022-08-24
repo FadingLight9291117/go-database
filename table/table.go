@@ -75,5 +75,9 @@ func (t *Table) Close() error {
 			pager.Pages[thisPageIndex] = nil
 		}
 	}
+	err := t.Pager.File.Close()
+	if err != nil {
+		return err
+	}
 	return nil
 }

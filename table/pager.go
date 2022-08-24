@@ -80,7 +80,6 @@ func (p *Pager) FlushOnePage(pageIndex int, rowNum int) error {
 	if err != nil {
 		return err
 	}
-	err = p.File.Close()
 	if err != nil {
 		return err
 	}

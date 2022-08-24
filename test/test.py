@@ -11,11 +11,7 @@ proc = subprocess.Popen("go run .",
 inputs = "\n".join(
     [
         "insert 0 clz email",
-        "insert 0 clz email",
-        "insert 0 clz email",
-        "select",
-        ".exit"
-    ]
+    ] * 24 + [".exit"]
 )
 
 out, error = proc.communicate(input=inputs)

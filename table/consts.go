@@ -2,6 +2,6 @@ package table
 
 const (
 	MAX_PAGE      = 100
-	ROWS_PER_PAGE = 4096
+	PAGE_SIZE     = 4096
+	ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE
 )
-const PAGE_SIZE = ROWS_PER_PAGE * ROW_SIZE

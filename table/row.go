@@ -12,8 +12,8 @@ const USERNAME_SIZE = ColumnUsernameSize * 4
 const EMAIL_SIZE = ColumnEmailSize * 4
 const ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE
 
-const ColumnUsernameSize = 32
-const ColumnEmailSize = 255
+const ColumnUsernameSize = 8
+const ColumnEmailSize = 32
 
 type Row struct {
 	Id       uint32
