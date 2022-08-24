@@ -21,6 +21,12 @@ type Row struct {
 	Email    [ColumnEmailSize]rune
 }
 
+func (r *Row) Copy(or *Row) {
+	r.Id = or.Id
+	r.Username = or.Username
+	r.Email = or.Email
+}
+
 func NewRow(id int, username string, email string) *Row {
 	row := Row{}
 	row.Id = uint32(id)
