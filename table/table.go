@@ -8,22 +8,22 @@ type Table struct {
 func New(filename string) *Table { return new(Table).init(filename) }
 
 func (t *Table) init(filename string) *Table {
-	t.Size = 0
 	pager := OpenPager(filename)
 	t.Pager = pager
+	t.Size = pager.FileSize / ROW_SIZE
 
 	return t
 }
 
-func (t *Table) IsFull() bool { return t.Size == MAX_PAGE*PAGE_SIZE }
+func (t *Table) IsFull() bool { return t.Size == MAX_PAGE*ROWS_PER_PAGE }
 
 func (t *Table) Insert(r *Row) *Table {
 	if t.IsFull() {
 		panic("table is full.")
 	}
-	pageNum := t.Size / PAGE_SIZE
+	pageNum := t.Size / ROWS_PER_PAGE
 	p := t.Pager.GetPage(pageNum)
-	pageOffset := t.Size % PAGE_SIZE
+	pageOffset := t.Size % ROWS_PER_PAGE
 	p.Rows[pageOffset] = *r
 	t.Size += 1
 
@@ -31,11 +31,15 @@ func (t *Table) Insert(r *Row) *Table {
 }
 
 func (t *Table) Select() []*Row {
-	rows := make([]*Row, 0, t.Size)
+	rows := make([]*Row, 0, t.Pager.FileSize/ROW_SIZE)
 
-	for i := 0; i < t.Pager.Len(); i++ {
+	pageNum := t.Size / ROWS_PER_PAGE
+	if t.Size%ROWS_PER_PAGE != 0 {
+		pageNum++
+	}
+	for i := 0; i < pageNum; i++ {
 		page := t.Pager.GetPage(i)
-		if t.Size-len(rows) < PAGE_SIZE {
+		if t.Size-len(rows) < ROWS_PER_PAGE {
 			for j := range page.Rows[:t.Size-len(rows)] {
 				rows = append(rows, &page.Rows[j])
 			}
@@ -47,4 +51,29 @@ func (t *Table) Select() []*Row {
 	}
 
 	return rows
+}
+
+func (t *Table) Close() error {
+	pager := t.Pager
+	fullPageNum := t.Size / ROWS_PER_PAGE
+	for i := 0; i < fullPageNum; i++ {
+		if pager.Pages[i] == nil {
+			continue
+		}
+		if err := pager.FlushOnePage(i, ROWS_PER_PAGE); err != nil {
+			return err
+		}
+		pager.Pages[i] = nil
+	}
+	additionRowNum := t.Size % ROWS_PER_PAGE
+	if additionRowNum > 0 {
+		thisPageIndex := fullPageNum
+		if pager.Pages[thisPageIndex] != nil {
+			if err := pager.FlushOnePage(thisPageIndex, additionRowNum); err != nil {
+				return err
+			}
+			pager.Pages[thisPageIndex] = nil
+		}
+	}
+	return nil
 }

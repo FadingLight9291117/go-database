@@ -22,8 +22,12 @@ func ExecuteStatement(statement *types.Statement, table *table.Table) (ExecuteRe
 	}
 }
 
-func DoMetaCommand(inputBuffer *types.InputBuffer, table *table.Table) (metaCommandResult.MetaCommandResult, error) {
+func DoMetaCommand(inputBuffer *types.InputBuffer, t *table.Table) (metaCommandResult.MetaCommandResult, error) {
 	if inputBuffer.Buffer == ".exit" {
+		err := t.Close()
+		if err != nil {
+			return 0, err
+		}
 		os.Exit(0)
 		return metaCommandResult.MetaCommandSuccess, nil
 	} else {

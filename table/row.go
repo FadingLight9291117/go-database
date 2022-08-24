@@ -7,15 +7,18 @@ import (
 )
 
 // 1个rune是4个字节
+const ID_SIZE = 4
+const USERNAME_SIZE = ColumnUsernameSize * 4
+const EMAIL_SIZE = ColumnEmailSize * 4
+const ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE
 
 const ColumnUsernameSize = 32
-const ColumnEmail = 255
-const RowSize = 4 + 4*(ColumnEmail+ColumnUsernameSize)
+const ColumnEmailSize = 255
 
 type Row struct {
 	Id       uint32
 	Username [ColumnUsernameSize]rune
-	Email    [ColumnEmail]rune
+	Email    [ColumnEmailSize]rune
 }
 
 func NewRow(id int, username string, email string) *Row {

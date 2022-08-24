@@ -5,8 +5,9 @@ import (
 )
 
 type Pager struct {
-	Pages [MAX_PAGE]*Page
-	File  *os.File // 持有一个file指针
+	Pages    [MAX_PAGE]*Page
+	File     *os.File // 持有一个file指针
+	FileSize int
 }
 
 func OpenPager(path string) *Pager { return new(Pager).init(path) }
@@ -17,17 +18,9 @@ func (p *Pager) init(path string) *Pager {
 		panic("file cannot open")
 	}
 	p.File = file
+	fileInfo, _ := p.File.Stat()
+	p.FileSize = int(fileInfo.Size())
 	return p
-}
-
-// Len FIXME: 这里没有存入文件
-func (p *Pager) Len() int {
-	for i := range p.Pages {
-		if p.Pages[i] == nil {
-			return i
-		}
-	}
-	return 0
 }
 
 func (p *Pager) GetPage(pageNum int) *Page {
@@ -36,31 +29,60 @@ func (p *Pager) GetPage(pageNum int) *Page {
 	}
 
 	if p.Pages[pageNum] == nil {
+		pageSize := PAGE_SIZE
 		// Cache miss.Allocate memory and load from file.
 		p.Pages[pageNum] = &Page{}
 
-		fileStat, _ := p.File.Stat()
 		// 文件中的 `page` 总数
-		filePagesNum := fileStat.Size() / PAGE_SIZE // FIXME
-		if fileStat.Size()%PAGE_SIZE != 0 {
+		filePagesNum := p.FileSize / pageSize
+		if p.FileSize%pageSize != 0 {
 			filePagesNum++
 		}
 
-		//// page在文件已有数据中
-		//if pageNum < int(filePagesNum) {
-		//	// TODO: 读取文件内容, [pageNum*PAGE_SIZE, pageNum*PAGE_SIZE + PAGE_SIZE)
-		//	b := make([]byte, PAGE_SIZE)
-		//	_, err := p.File.ReadAt(b, int64(PAGE_SIZE*pageNum))
-		//	if err != nil {
-		//		return nil
-		//	}
-		//	pg, err := DeserializePage(b)
-		//	if err != nil {
-		//		return nil
-		//	}
-		//	p.Pages[pageNum] = pg
-		//}
+		// page在文件已有数据中
+		if pageNum < int(filePagesNum) {
+			b := make([]byte, pageSize)
+			offset := int64(pageNum * pageSize)
+
+			if pageNum == int(filePagesNum)-1 {
+				Len := p.FileSize % pageSize
+				_, err := p.File.ReadAt(b[:Len], offset) // `b`的长度不可以大于`File`的长度
+				if err != nil {
+					return nil
+				}
+			} else {
+				_, err := p.File.ReadAt(b, offset) // `b`的长度不可以大于`File`的长度
+				if err != nil {
+					return nil
+				}
+			}
+
+			pg, err := DeserializePage(b)
+			if err != nil {
+				return nil
+			}
+			p.Pages[pageNum] = pg
+		}
 	}
 
 	return p.Pages[pageNum]
+}
+
+func (p *Pager) FlushOnePage(pageIndex int, rowNum int) error {
+	page := p.Pages[pageIndex]
+	buf, err := page.Serialize()
+	buf = buf[:rowNum*ROW_SIZE]
+	if err != nil {
+		return err
+	}
+	offset := int64(PAGE_SIZE * pageIndex)
+	_, err = p.File.WriteAt(buf, offset)
+	if err != nil {
+		return err
+	}
+	err = p.File.Close()
+	if err != nil {
+		return err
+	}
+	return nil
 }

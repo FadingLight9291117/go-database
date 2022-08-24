@@ -6,7 +6,7 @@ import (
 )
 
 func ExecuteSelect(statement *types.Statement, t *table.Table) (ExecuteResult, error) {
-	for _, v := range t.Select() {
+	for _, v := range t.Select() { // nil
 		v.Print()
 	}
 	return EXECUTE_SUCESS, nil

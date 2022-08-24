@@ -11,7 +11,15 @@ import (
 func PrepareInsert(inputBuffer *types.InputBuffer, statement *types.Statement) (PrepareResult, error) {
 	statement.StatementType = types.StatementInsert
 
-	words := strings.Split(inputBuffer.Buffer, " ")
+	words_ := strings.Split(inputBuffer.Buffer, " ")
+
+	words := make([]string, 0, len(words_))
+	for _, word := range words_ {
+		if strings.TrimSpace(word) != "" {
+			words = append(words, word)
+		}
+	}
+
 	command := words[0]
 	words = words[1:]
 
@@ -34,7 +42,7 @@ func PrepareInsert(inputBuffer *types.InputBuffer, statement *types.Statement) (
 	if len(words[1]) > table.ColumnUsernameSize {
 		return PREPARE_STRING_TOOLONG, errors.New("string is too long")
 	}
-	if len(words[2]) > table.ColumnEmail {
+	if len(words[2]) > table.ColumnEmailSize {
 		return PREPARE_STRING_TOOLONG, errors.New("string is too long")
 	}
 
