@@ -1,52 +1,49 @@
 package table
 
+import "com.fadinglight/db/BTree"
+
 type Table struct {
-	Size  int
-	Pager *Pager
+	Size        int
+	Pager       *Pager
+	RootPageNum int
 }
 
-func New(filename string) *Table { return new(Table).init(filename) }
+func NewTable(filename string) *Table { return new(Table).init(filename) }
 
 func (t *Table) init(filename string) *Table {
-	pager := OpenPager(filename)
+	pager := NewPager(filename)
 	t.Pager = pager
-	t.Size = pager.FileSize / ROW_SIZE
+	t.Size = pager.FileSize / BTree.ROW_SIZE
 
 	return t
 }
 
-func (t *Table) IsFull() bool { return t.Size == MAX_PAGE*ROWS_PER_PAGE }
+func (t *Table) IsFull() bool { return t.Size == MAX_PAGE*BTree.ROWS_PER_PAGE }
 
-func (t *Table) Insert(r *Row) *Table {
+func (t *Table) Insert(r *BTree.Row) *Table {
 	if t.IsFull() {
 		panic("table is full.")
 	}
-	pageNum := t.Size / ROWS_PER_PAGE
+	pageNum := t.Size / BTree.ROWS_PER_PAGE
 	p := t.Pager.GetPage(pageNum)
-	pageOffset := t.Size % ROWS_PER_PAGE
-	p.Rows[pageOffset] = *r
-	t.Size += 1
+	p.Cells[p.CellNums] = BTree.NodeCell{
+		Key:   r.Id,
+		Value: *r,
+	}
+	p.CellNums++
 
 	return t
 }
 
-func (t *Table) Select() []*Row {
-	rows := make([]*Row, 0, t.Pager.FileSize/ROW_SIZE)
+func (t *Table) Select() []*BTree.Row {
+	rows := make([]*BTree.Row, 0, t.Size)
 
-	pageNum := t.Size / ROWS_PER_PAGE
-	if t.Size%ROWS_PER_PAGE != 0 {
-		pageNum++
-	}
+	pageNum := t.Size / BTree.PAGE_SIZE
+
 	for i := 0; i < pageNum; i++ {
 		page := t.Pager.GetPage(i)
-		if t.Size-len(rows) < ROWS_PER_PAGE {
-			for j := range page.Rows[:t.Size-len(rows)] {
-				rows = append(rows, &page.Rows[j])
-			}
-			break
-		}
-		for j := range page.Rows {
-			rows = append(rows, &page.Rows[j])
+		for j := 0; j < int(page.CellNums); j++ {
+			rows = append(rows, &page.Cells[j].Value)
 		}
 	}
 
@@ -55,28 +52,16 @@ func (t *Table) Select() []*Row {
 
 func (t *Table) Close() error {
 	pager := t.Pager
-	fullPageNum := t.Size / ROWS_PER_PAGE
-	for i := 0; i < fullPageNum; i++ {
-		if pager.Pages[i] == nil {
-			continue
-		}
-		if err := pager.FlushOnePage(i, ROWS_PER_PAGE); err != nil {
-			return err
-		}
-		pager.Pages[i] = nil
-	}
-	additionRowNum := t.Size % ROWS_PER_PAGE
-	if additionRowNum > 0 {
-		thisPageIndex := fullPageNum
-		if pager.Pages[thisPageIndex] != nil {
-			if err := pager.FlushOnePage(thisPageIndex, additionRowNum); err != nil {
+	//fullPageNum := t.Size / ROWS_PER_PAGE
+	for i := 0; i < len(t.Pager.Pages); i++ {
+		if pager.Pages[i] != nil {
+			if err := pager.FlushOnePage(i); err != nil {
 				return err
 			}
-			pager.Pages[thisPageIndex] = nil
+			pager.Pages[i] = nil
 		}
 	}
-	err := t.Pager.File.Close()
-	if err != nil {
+	if err := t.Pager.File.Close(); err != nil {
 		return err
 	}
 	return nil

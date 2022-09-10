@@ -30,7 +30,7 @@ func readInput(scanner *bufio.Scanner) *types.InputBuffer {
  * 3. 初始化 `table` 数据结构。
  */
 func dbOpen(filename string) (*table.Table, bool) {
-	t := table.New(filename)
+	t := table.NewTable(filename)
 
 	return t, true
 }
@@ -67,12 +67,14 @@ func main() {
 		}
 		// 解析普通命令
 		statement := &types.Statement{}
-		if _, err := processor.PrepareStatement(inputBuffer, statement); err != nil {
+		_, err := processor.PrepareStatement(inputBuffer, statement)
+		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 		// 执行
-		if _, err := executor.ExecuteStatement(statement, t); err != nil {
+		_, err = executor.ExecuteStatement(statement, t)
+		if err != nil {
 			fmt.Println(err)
 			continue
 		}

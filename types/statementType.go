@@ -1,6 +1,8 @@
 package types
 
-import "com.fadinglight/db/table"
+import (
+	"com.fadinglight/db/BTree"
+)
 
 type StatementType byte
 
@@ -11,6 +13,5 @@ const (
 
 type Statement struct {
 	StatementType StatementType
-	Row2Insert    *table.Row //only used by insert statement
+	Row2Insert    *BTree.Row //only used by insert statement
 }
-

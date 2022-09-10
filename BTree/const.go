@@ -1,0 +1,7 @@
+package BTree
+
+const (
+	ROW_SIZE      = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE
+	PAGE_SIZE     = 4096
+	ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE
+)

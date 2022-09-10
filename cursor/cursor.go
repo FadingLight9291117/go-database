@@ -1,6 +1,9 @@
 package cursor
 
-import "com.fadinglight/db/table"
+import (
+	"com.fadinglight/db/BTree"
+	"com.fadinglight/db/table"
+)
 
 /*
 * 	Cursor 可以做的事情
@@ -19,31 +22,29 @@ import "com.fadinglight/db/table"
 
 type Cursor struct {
 	Table      *table.Table
-	RowNum     int  // 指向的row的位置
+	PageNum    int
+	CellNum    int
 	EndOfTable bool // past the end of the table
 }
 
 // Value return the pointed row of the cursor
-func (c *Cursor) Value() *table.Row {
-	pageNum := c.RowNum / table.ROWS_PER_PAGE
-	page := c.Table.Pager.GetPage(pageNum)
-	rowOffset := c.RowNum % table.ROWS_PER_PAGE
-	return &page.Rows[rowOffset]
+func (c *Cursor) Value() *BTree.Row {
+	page := c.Table.Pager.GetPage(c.PageNum)
+	return &page.Cells[c.CellNum].Value
 }
 
 func (c *Cursor) IsEnd() bool {
 	return c.EndOfTable
 }
 
-func (c *Cursor) Next() *table.Row {
-	var row *table.Row
-	if !c.IsEnd() {
-		row = c.Value()
-		c.RowNum++
-	}
-	if c.RowNum >= c.Table.Size {
+func (c *Cursor) Next() *BTree.Row {
+	row := c.Value()
+	node := c.Table.Pager.GetPage(c.PageNum)
+	c.CellNum++
+	if c.CellNum >= int(node.CellNums) {
 		c.EndOfTable = true
 	}
+
 	return row
 }
 
@@ -59,8 +60,10 @@ func CreateCursor(table *table.Table, end bool) *Cursor {
 func tableStart(table *table.Table) *Cursor {
 	cursor := &Cursor{}
 	cursor.Table = table
-	cursor.RowNum = 0
-	cursor.EndOfTable = table.Size == 0
+	cursor.PageNum = table.RootPageNum
+	cursor.CellNum = 0
+	rootNode := table.Pager.GetPage(table.RootPageNum)
+	cursor.EndOfTable = rootNode.CellNums == 0
 	return cursor
 }
 
@@ -68,7 +71,9 @@ func tableStart(table *table.Table) *Cursor {
 func tableEnd(table *table.Table) *Cursor {
 	cursor := &Cursor{}
 	cursor.Table = table
-	cursor.RowNum = table.Size
+	cursor.PageNum = table.RootPageNum
+	rootNode := table.Pager.GetPage(table.RootPageNum)
+	cursor.CellNum = int(rootNode.CellNums)
 	cursor.EndOfTable = true
 	return cursor
 }

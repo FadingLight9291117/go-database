@@ -1,19 +1,23 @@
-package table
+package BTree
 
 import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"unsafe"
 )
 
 // 1个rune是4个字节
-const ID_SIZE = 4
-const USERNAME_SIZE = ColumnUsernameSize * 4
-const EMAIL_SIZE = ColumnEmailSize * 4
-const ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE
+const (
+	ID_SIZE       = int(unsafe.Sizeof(uint32(0)))
+	USERNAME_SIZE = int(ColumnUsernameSize * unsafe.Sizeof(rune(' ')))
+	EMAIL_SIZE    = int(ColumnEmailSize * unsafe.Sizeof(rune(' ')))
+)
 
-const ColumnUsernameSize = 8
-const ColumnEmailSize = 32
+const (
+	ColumnUsernameSize = 8
+	ColumnEmailSize    = 32
+)
 
 type Row struct {
 	Id       uint32

@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"com.fadinglight/db/BTree"
 	"com.fadinglight/db/cursor"
 	"com.fadinglight/db/table"
 	"com.fadinglight/db/types"
@@ -9,7 +10,7 @@ import (
 
 func ExecuteSelect(statement *types.Statement, t *table.Table) (ExecuteResult, error) {
 	c := cursor.CreateCursor(t, false)
-	var r *table.Row
+	var r *BTree.Row
 	i := 0
 	for !c.IsEnd() {
 		r = c.Next()

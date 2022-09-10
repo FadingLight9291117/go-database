@@ -1,29 +1,32 @@
 package table
 
+import (
+	"bytes"
+	"com.fadinglight/db/BTree"
+	"encoding/binary"
+)
+
 type Page struct {
-	Rows [ROWS_PER_PAGE]Row
+	BTree.LeafNode
 }
 
 func (p *Page) Serialize() ([]byte, error) {
-	bs := make([]byte, 0, len(p.Rows)*ROW_SIZE)
-	for _, r := range p.Rows {
-		br, err := r.Serialize()
-		if err != nil {
-			return nil, err
-		}
-		bs = append(bs, br...)
+	bs := make([]byte, BTree.PAGE_SIZE)
+	buf := bytes.NewBuffer(bs)
+	if err := binary.Write(buf, binary.BigEndian, p); err != nil {
+		return nil, err
 	}
+	copy(bs, buf.Bytes())
+
 	return bs, nil
 }
 
 func DeserializePage(bs []byte) (*Page, error) {
-	rows := [ROWS_PER_PAGE]Row{}
-	for i, _ := range rows {
-		r, err := DeserializeRow(bs[i*ROW_SIZE : i*ROW_SIZE+ROW_SIZE])
-		if err != nil {
-			return nil, err
-		}
-		rows[i] = *r
+	page := new(Page)
+	buf := bytes.NewBuffer(bs[:BTree.PAGE_SIZE-BTree.LEAF_NODE_SPACE_FOR_CELLS])
+	if err := binary.Read(buf, binary.BigEndian, &page); err != nil {
+		return nil, err
 	}
-	return &Page{rows}, nil
+
+	return page, nil
 }

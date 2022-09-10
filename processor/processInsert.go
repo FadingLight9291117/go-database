@@ -1,7 +1,7 @@
 package processor
 
 import (
-	"com.fadinglight/db/table"
+	"com.fadinglight/db/BTree"
 	"com.fadinglight/db/types"
 	"errors"
 	"strconv"
@@ -39,14 +39,14 @@ func PrepareInsert(inputBuffer *types.InputBuffer, statement *types.Statement) (
 	if id < 0 {
 		return PREPARE_NEGATIVE_ID, errors.New("ID must be positive")
 	}
-	if len(words[1]) > table.ColumnUsernameSize {
+	if len(words[1]) > BTree.ColumnUsernameSize {
 		return PREPARE_STRING_TOOLONG, errors.New("string is too long")
 	}
-	if len(words[2]) > table.ColumnEmailSize {
+	if len(words[2]) > BTree.ColumnEmailSize {
 		return PREPARE_STRING_TOOLONG, errors.New("string is too long")
 	}
 
-	r := table.NewRow(id, username, email)
+	r := BTree.NewRow(id, username, email)
 	statement.Row2Insert = r
 
 	return PREPARE_SUCCESS, nil

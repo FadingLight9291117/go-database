@@ -17,7 +17,7 @@ func ExecuteInsert(statement *types.Statement, table *table.Table) (ExecuteResul
 	c.Value().Copy(row2Insert)
 
 	table.Size++
-	//table.Insert(row2Insert)
+	table.Insert(row2Insert)
 
 	return EXECUTE_SUCESS, nil
 }

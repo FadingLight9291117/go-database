@@ -3,10 +3,16 @@ package executor
 import (
 	"com.fadinglight/db/table"
 	"com.fadinglight/db/types"
-	"com.fadinglight/db/types/metaCommandResult"
 	"errors"
 	"fmt"
 	"os"
+)
+
+type MetaCommandResult byte
+
+const (
+	MetaCommandSuccess MetaCommandResult = iota
+	MetaCommandUnrecognizedCommand
 )
 
 func ExecuteStatement(statement *types.Statement, table *table.Table) (ExecuteResult, error) {
@@ -22,15 +28,15 @@ func ExecuteStatement(statement *types.Statement, table *table.Table) (ExecuteRe
 	}
 }
 
-func DoMetaCommand(inputBuffer *types.InputBuffer, t *table.Table) (metaCommandResult.MetaCommandResult, error) {
+func DoMetaCommand(inputBuffer *types.InputBuffer, t *table.Table) (MetaCommandResult, error) {
 	if inputBuffer.Buffer == ".exit" {
 		err := t.Close()
 		if err != nil {
 			return 0, err
 		}
 		os.Exit(0)
-		return metaCommandResult.MetaCommandSuccess, nil
+		return MetaCommandSuccess, nil
 	} else {
-		return metaCommandResult.MetaCommandUnrecognizedCommand, errors.New(fmt.Sprintf("Unrecognized command '%s' .\n", inputBuffer.Buffer))
+		return MetaCommandUnrecognizedCommand, errors.New(fmt.Sprintf("Unrecognized command '%s' .\n", inputBuffer.Buffer))
 	}
 }
