@@ -3,6 +3,7 @@ package cursor
 import (
 	"com.fadinglight/db/BTree"
 	"com.fadinglight/db/table"
+	"errors"
 )
 
 /*
@@ -76,4 +77,24 @@ func tableEnd(table *table.Table) *Cursor {
 	cursor.CellNum = int(rootNode.CellNums)
 	cursor.EndOfTable = true
 	return cursor
+}
+
+func (c *Cursor) InsertLeafNode(key int, value *BTree.Row) error {
+	page := c.Table.Pager.GetPage(c.PageNum)
+	if int(page.CellNums) >= BTree.LEAF_NODE_MAX_CELLS {
+		// Page is full
+		return errors.New("need to implement splitting a leaf node")
+	}
+	if c.CellNum < int(page.CellNums) {
+		// make room for new cell
+		for i := int(page.CellNums); i > c.CellNum; i-- {
+			page.Cells[i+1] = page.Cells[i]
+		}
+	}
+	page.CellNums++
+	page.Cells[c.CellNum] = BTree.NodeCell{
+		Key:   uint32(key),
+		Value: *value,
+	}
+	return nil
 }

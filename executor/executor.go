@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"com.fadinglight/db/BTree"
 	"com.fadinglight/db/table"
 	"com.fadinglight/db/types"
 	"errors"
@@ -29,14 +30,27 @@ func ExecuteStatement(statement *types.Statement, table *table.Table) (ExecuteRe
 }
 
 func DoMetaCommand(inputBuffer *types.InputBuffer, t *table.Table) (MetaCommandResult, error) {
-	if inputBuffer.Buffer == ".exit" {
+	switch inputBuffer.Buffer {
+	case ".exit":
 		err := t.Close()
 		if err != nil {
 			return 0, err
 		}
 		os.Exit(0)
-		return MetaCommandSuccess, nil
-	} else {
+	case ".constants":
+		fmt.Println("Constants:")
+		printConstants()
+	default:
 		return MetaCommandUnrecognizedCommand, errors.New(fmt.Sprintf("Unrecognized command '%s' .\n", inputBuffer.Buffer))
 	}
+	return MetaCommandSuccess, nil
+}
+
+func printConstants() {
+	fmt.Printf("ROW_SIZE: %d\n", BTree.ROW_SIZE)
+	fmt.Printf("COMMON_NODE_HEADER_SIZE: %d\n", BTree.COMMON_NODE_HEADER_SIZE)
+	fmt.Printf("LEAF_NODE_HEADER_SIZE: %d\n", BTree.LEAF_NODE_HEADER_SIZE)
+	fmt.Printf("LEAF_NODE_CELL_SIZE: %d\n", BTree.LEAF_NODE_CELL_SIZE)
+	fmt.Printf("LEAF_NODE_SPACE_FOR_CELLS: %d\n", BTree.LEAF_NODE_SPACE_FOR_CELLS)
+	fmt.Printf("LEAF_NODE_MAX_CELLS: %d\n", BTree.LEAF_NODE_MAX_CELLS)
 }

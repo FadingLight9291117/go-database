@@ -1,9 +1,10 @@
 package main
 
-import (
-	"fmt"
-	"unsafe"
-)
+import "fmt"
+
+type Node struct {
+	key int
+}
 
 func main() {
 
@@ -23,10 +24,22 @@ func main() {
 	//	fmt.Printf("%d => %v\n", i, v)
 	//}
 
-	a := []int{1, 2, 3, 4}
+	//a := []int{1, 2, 3, 4}
+	//
+	//fmt.Printf("golang 指针长度: %d个字节\n", unsafe.Sizeof(&a))
+	//fmt.Printf("golang bool长度：%d个字节\n", unsafe.Sizeof(true))
+	//fmt.Printf("golang int 长度：%d个字节\n", unsafe.Sizeof(int(0)))
+	nodes := make([]Node, 10)
+	for i := range nodes {
+		nodes[i].key = i
+	}
+	fmt.Printf("%v\n", nodes)
+	// insert a node
+	newNode := Node{key: -1}
 
-	fmt.Printf("golang 指针长度: %d个字节\n", unsafe.Sizeof(&a))
-	fmt.Printf("golang bool长度：%d个字节\n", unsafe.Sizeof(true))
-	fmt.Printf("golang int 长度：%d个字节\n", unsafe.Sizeof(int(0)))
-
+	for i := len(nodes) - 2; i > 3; i-- {
+		nodes[i+1] = nodes[i]
+	}
+	nodes[3] = newNode
+	fmt.Printf("%v\n", nodes)
 }
