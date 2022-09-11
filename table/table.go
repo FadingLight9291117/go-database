@@ -5,7 +5,6 @@ import (
 )
 
 type Table struct {
-	Size        int
 	Pager       *Pager
 	RootPageNum int
 }
@@ -24,29 +23,29 @@ func (t *Table) init(filename string) *Table {
 	return t
 }
 
-func (t *Table) IsFull() bool {
-	return t.Size == MAX_PAGE*BTree.ROWS_PER_PAGE
-}
+//func (t *Table) IsFull() bool {
+//	return t.Size == MAX_PAGE*BTree.ROWS_PER_PAGE
+//}
 
-func (t *Table) Insert(r *BTree.Row) *Table {
-	if t.IsFull() {
-		panic("table is full.")
-	}
-	pageNum := t.Size / BTree.ROWS_PER_PAGE
-	p := t.Pager.GetPage(pageNum)
-	p.CellNums++
-	p.Cells[p.CellNums] = BTree.NodeCell{
-		Key:   r.Id,
-		Value: *r,
-	}
-
-	return t
-}
+//func (t *Table) Insert(r *BTree.Row) *Table {
+//	if t.IsFull() {
+//		panic("table is full.")
+//	}
+//	pageNum := t.Size / BTree.ROWS_PER_PAGE
+//	p := t.Pager.GetPage(pageNum)
+//	p.CellNums++
+//	p.Cells[p.CellNums] = BTree.NodeCell{
+//		Key:   r.Id,
+//		Value: *r,
+//	}
+//
+//	return t
+//}
 
 func (t *Table) Select() []*BTree.Row {
-	rows := make([]*BTree.Row, 0, t.Size)
+	rows := make([]*BTree.Row, 0)
 
-	pageNum := t.Size / BTree.PAGE_SIZE
+	pageNum := t.Pager.FileSize / BTree.PAGE_SIZE
 
 	for i := 0; i < pageNum; i++ {
 		page := t.Pager.GetPage(i)
