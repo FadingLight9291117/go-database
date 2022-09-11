@@ -15,8 +15,18 @@ func ExecuteInsert(statement *types.Statement, t *table.Table) (ExecuteResult, e
 	}
 
 	row2Insert := statement.Row2Insert
-	c := cursor.CreateCursor(t, true) // create a cursor pasted the end of the t
-	err := c.InsertLeafNode(int(row2Insert.Id), row2Insert)
+	key2Inset := row2Insert.Id
+	c := cursor.FindInTable(t, key2Inset) // create a cursor pasted the end of the t
+
+	if c.CellNum < int(p.CellNums) {
+		keyAtIndex := p.Cells[c.CellNum].Key
+		if keyAtIndex == key2Inset {
+			// key is duplicate
+			return EXECUT_DUPLICATE_KEY, errors.New("error: duplicate key")
+		}
+	}
+
+	err := c.InsertLeafNode(key2Inset, row2Insert)
 	if err != nil {
 		return EXECUTE_ERROR, err
 	}

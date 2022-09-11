@@ -9,7 +9,7 @@ import (
 )
 
 func ExecuteSelect(statement *types.Statement, t *table.Table) (ExecuteResult, error) {
-	c := cursor.CreateCursor(t, false)
+	c := cursor.CreateStartCursor(t)
 	var r *BTree.Row
 	i := 0
 	for !c.IsEnd() {

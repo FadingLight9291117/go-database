@@ -9,8 +9,8 @@ import (
 type NodeType = uint8
 
 const (
-	NODE_INTERNAL NodeType = iota
-	NODE_LEAF
+	NODE_TYPE_INTERNAL NodeType = iota
+	NODE_TYPE_LEAF
 )
 
 type CommonNodeHeader struct {
@@ -39,7 +39,7 @@ type LeafNode struct {
  * type(1 byte) - isRoot(1 byte) - parentPtr(8 byte)
  */
 const (
-	NODE_TYPE_SIZE          = int(unsafe.Sizeof(NODE_INTERNAL))
+	NODE_TYPE_SIZE          = int(unsafe.Sizeof(NODE_TYPE_INTERNAL))
 	NODE_TYPE_OFFSET        = int(0)
 	NODE_IS_ROOT_SIZE       = int(unsafe.Sizeof(true))
 	NODE_IS_ROOT_OFFSET     = int(NODE_TYPE_OFFSET + NODE_TYPE_SIZE)
@@ -113,14 +113,13 @@ func GetLeafNodeValue(b *[]byte, cellNum int) (*Row, error) {
 }
 
 // InitLeafNode 将node的cellNum置零
-func InitLeafNode(b *[]byte) error {
-	buf := new(bytes.Buffer)
-	err := binary.Read(buf, binary.BigEndian, 0)
-	if err != nil {
-		return err
+func InitLeafNode() *LeafNode {
+	node := &LeafNode{
+		LeafNodeHeader: LeafNodeHeader{
+			CommonNodeHeader: CommonNodeHeader{Type: NODE_TYPE_LEAF},
+		},
 	}
-	copy((*b)[LEAF_NODE_CELL_NUMS_OFFSET:LEAF_NODE_CELL_NUMS_OFFSET+LEAF_NODE_CELL_NUMS_SIZE], buf.Bytes())
-	return nil
+	return node
 }
 
 func SerializeLeafNode(node *LeafNode) ([]byte, error) {

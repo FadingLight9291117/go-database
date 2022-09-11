@@ -41,7 +41,7 @@ func (p *Pager) GetPage(pageNum int) *Page {
 	if p.Pages[pageNum] == nil {
 		pageSize := BTree.PAGE_SIZE
 		// Cache miss.Allocate memory and load from file.
-		p.Pages[pageNum] = &Page{}
+		p.Pages[pageNum] = &Page{*BTree.InitLeafNode()}
 
 		// 文件中的 `page` 总数
 		filePagesNum := p.FileSize / pageSize

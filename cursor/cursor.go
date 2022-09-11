@@ -4,6 +4,8 @@ import (
 	"com.fadinglight/db/BTree"
 	"com.fadinglight/db/table"
 	"errors"
+	"fmt"
+	"os"
 )
 
 /*
@@ -49,12 +51,8 @@ func (c *Cursor) Next() *BTree.Row {
 	return row
 }
 
-func CreateCursor(table *table.Table, end bool) *Cursor {
-	if end {
-		return tableEnd(table)
-	} else {
-		return tableStart(table)
-	}
+func CreateStartCursor(table *table.Table) *Cursor {
+	return tableStart(table)
 }
 
 // tableStart return a cursor at the beginning of the table
@@ -68,18 +66,61 @@ func tableStart(table *table.Table) *Cursor {
 	return cursor
 }
 
-// tableEnd returns a cursor at the end of the table
-func tableEnd(table *table.Table) *Cursor {
-	cursor := &Cursor{}
-	cursor.Table = table
-	cursor.PageNum = table.RootPageNum
-	rootNode := table.Pager.GetPage(table.RootPageNum)
-	cursor.CellNum = int(rootNode.CellNums)
-	cursor.EndOfTable = true
-	return cursor
+//// tableEnd returns a cursor at the end of the table
+//func tableEnd(table *table.Table) *Cursor {
+//	cursor := &Cursor{}
+//	cursor.Table = table
+//	cursor.PageNum = table.RootPageNum
+//	rootNode := table.Pager.GetPage(table.RootPageNum)
+//	cursor.CellNum = int(rootNode.CellNums)
+//	cursor.EndOfTable = true
+//	return cursor
+//}
+
+// FindInTable returns a cursor at the position of the given key
+func FindInTable(t *table.Table, key2Insert uint32) *Cursor {
+	rootNode := t.Pager.GetPage(t.RootPageNum)
+	if rootNode.Type == BTree.NODE_TYPE_LEAF {
+		return findInLeafNode(t, t.RootPageNum, key2Insert)
+	} else {
+		fmt.Println("Need to implement searching an internal node.")
+		os.Exit(1)
+		return nil
+	}
 }
 
-func (c *Cursor) InsertLeafNode(key int, value *BTree.Row) error {
+func findInLeafNode(t *table.Table, pageNum int, key uint32) *Cursor {
+	page := t.Pager.GetPage(pageNum)
+	cellNums := int(page.CellNums)
+
+	c := &Cursor{
+		Table:      t,
+		PageNum:    pageNum,
+		EndOfTable: false,
+		CellNum:    int(page.CellNums),
+	}
+	// binary search
+
+	lIndex := 0
+	rIndex := cellNums
+	for lIndex < rIndex {
+		midIndex := (lIndex + rIndex) / 2
+		if page.Cells[midIndex].Key == key {
+			c.CellNum = midIndex
+			return c
+		}
+		if page.Cells[midIndex].Key > key {
+			rIndex = midIndex
+		} else {
+			lIndex = midIndex + 1
+		}
+	}
+
+	c.CellNum = lIndex
+	return c
+}
+
+func (c *Cursor) InsertLeafNode(key uint32, value *BTree.Row) error {
 	page := c.Table.Pager.GetPage(c.PageNum)
 	if int(page.CellNums) >= BTree.LEAF_NODE_MAX_CELLS {
 		// Page is full
@@ -88,12 +129,12 @@ func (c *Cursor) InsertLeafNode(key int, value *BTree.Row) error {
 	if c.CellNum < int(page.CellNums) {
 		// make room for new cell
 		for i := int(page.CellNums); i > c.CellNum; i-- {
-			page.Cells[i+1] = page.Cells[i]
+			page.Cells[i] = page.Cells[i-1]
 		}
 	}
 	page.CellNums++
 	page.Cells[c.CellNum] = BTree.NodeCell{
-		Key:   uint32(key),
+		Key:   key,
 		Value: *value,
 	}
 	return nil
