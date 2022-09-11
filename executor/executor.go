@@ -53,4 +53,6 @@ func printConstants() {
 	fmt.Printf("LEAF_NODE_CELL_SIZE: %d\n", BTree.LEAF_NODE_CELL_SIZE)
 	fmt.Printf("LEAF_NODE_SPACE_FOR_CELLS: %d\n", BTree.LEAF_NODE_SPACE_FOR_CELLS)
 	fmt.Printf("LEAF_NODE_MAX_CELLS: %d\n", BTree.LEAF_NODE_MAX_CELLS)
+	fmt.Printf("LEAF_NODE_SIZE: %d\n", BTree.LEAF_NODE_SIZE)
+	fmt.Printf("LEAF_NODE_BLANK_SIZE: %d\n", BTree.LEAF_NODE_BLANK_SIZE)
 }

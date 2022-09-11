@@ -16,7 +16,7 @@ const (
 type CommonNodeHeader struct {
 	Type      NodeType
 	IsRoot    bool
-	ParentPtr *CommonNodeHeader
+	ParentPtr *CommonNodeHeader // 无法序列化
 }
 
 type LeafNodeHeader struct {
@@ -72,6 +72,11 @@ const (
 	LEAF_NODE_MAX_CELLS       = int(LEAF_NODE_SPACE_FOR_CELLS / LEAF_NODE_CELL_SIZE)
 )
 
+const (
+	LEAF_NODE_SIZE       = int(LEAF_NODE_HEADER_SIZE + LEAF_NODE_CELL_SIZE*LEAF_NODE_MAX_CELLS)
+	LEAF_NODE_BLANK_SIZE = int(PAGE_SIZE - LEAF_NODE_SIZE)
+)
+
 func GetLeafNodeCellsNum(b *[]byte) (int, error) {
 	var cellNum uint32
 	buf := bytes.NewBuffer((*b)[LEAF_NODE_CELL_NUMS_OFFSET:])
@@ -116,4 +121,47 @@ func InitLeafNode(b *[]byte) error {
 	}
 	copy((*b)[LEAF_NODE_CELL_NUMS_OFFSET:LEAF_NODE_CELL_NUMS_OFFSET+LEAF_NODE_CELL_NUMS_SIZE], buf.Bytes())
 	return nil
+}
+
+func SerializeLeafNode(node *LeafNode) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	data := []any{node.Type, node.IsRoot, uint64(0), node.CellNums, node.Cells}
+	for _, v := range data {
+		err := binary.Write(buf, binary.BigEndian, v)
+		if err != nil {
+			return nil, err
+		}
+	}
+	space := make([]byte, LEAF_NODE_BLANK_SIZE)
+	buf.Write(space)
+	return buf.Bytes(), nil
+}
+
+func DeSerializeLeafNode(b []byte) (*LeafNode, error) {
+	buf := bytes.NewReader(b[:LEAF_NODE_SIZE])
+
+	var data struct {
+		Type      NodeType
+		IsRoot    bool
+		ParentPtr uint64
+		CellNums  uint32
+		Cells     [LEAF_NODE_MAX_CELLS]NodeCell
+	}
+	err := binary.Read(buf, binary.BigEndian, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	leafNode := &LeafNode{
+		LeafNodeHeader: LeafNodeHeader{
+			CommonNodeHeader: CommonNodeHeader{
+				Type:      data.Type,
+				IsRoot:    data.IsRoot,
+				ParentPtr: nil,
+			},
+			CellNums: data.CellNums,
+		},
+		Cells: data.Cells,
+	}
+	return leafNode, nil
 }
