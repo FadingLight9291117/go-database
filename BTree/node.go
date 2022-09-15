@@ -112,8 +112,8 @@ func GetLeafNodeValue(b *[]byte, cellNum int) (*Row, error) {
 	return &cell.Value, nil
 }
 
-// InitLeafNode 将node的cellNum置零
-func InitLeafNode() *LeafNode {
+// CreateLeafNode 将node的cellNum置零
+func CreateLeafNode() *LeafNode {
 	node := &LeafNode{
 		LeafNodeHeader: LeafNodeHeader{
 			CommonNodeHeader: CommonNodeHeader{Type: NODE_TYPE_LEAF},

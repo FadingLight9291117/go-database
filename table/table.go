@@ -15,7 +15,7 @@ func (t *Table) init(filename string) *Table {
 	pager := NewPager(filename)
 	t.Pager = pager
 	t.RootPageNum = 0
-	if pager.PageNum == 0 {
+	if pager.PageNums == 0 {
 		// New database file. Initialize page 0 as leaf node.
 		t.Pager.GetPage(0)
 	}
@@ -70,4 +70,19 @@ func (t *Table) Close() error {
 	}
 
 	return nil
+}
+
+func (t *Table) CreateNewRoot(rightChildPageNum int) {
+	/*
+		Handle splitting thr root
+		Old root copied to new Pag, becomes left child.
+		Address of right child passed in.
+		Re-initialize root page to contain the new root node.
+		New root node points to the two child
+	*/
+	root := t.Pager.GetPage(t.RootPageNum)
+	rightChild := t.Pager.GetPage(rightChildPageNum)
+	leftChild := t.Pager.GetPage(t.Pager.GetUnusedPageNum())
+	leftChild.CopyFrom(root)
+	root
 }

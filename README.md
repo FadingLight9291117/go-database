@@ -3,15 +3,15 @@
 [copy of SQLite Database System: Design and Implementation](https://cstack.github.io/db_tutorial/parts/part1.html)
 
 - [copy of SQLite Database System](#copy-of-sqlite-database-system)
-  - [标准`IO`](#标准io)
-    - [标准输入](#标准输入)
-    - [标准输出](#标准输出)
-  - [文件路径操作](#文件路径操作)
-  - [go内存分配 `tcmalloc`](#go内存分配-tcmalloc)
-  - [string 和 rune 的一些转换](#string-和-rune-的一些转换)
-  - [`struct` 和 `[]byte` 的相互转化](#struct-和-byte-的相互转化)
-  - [some problem](#some-problem)
-    - [2022.8.1](#202281)
+    - [标准`IO`](#标准io)
+        - [标准输入](#标准输入)
+        - [标准输出](#标准输出)
+    - [文件路径操作](#文件路径操作)
+    - [go内存分配 `tcmalloc`](#go内存分配-tcmalloc)
+    - [string 和 rune 的一些转换](#string-和-rune-的一些转换)
+    - [`struct` 和 `[]byte` 的相互转化](#struct-和-byte-的相互转化)
+    - [some problem](#some-problem)
+        - [2022.8.1](#202281)
 
 ## 标准`IO`
 
@@ -83,9 +83,12 @@ string(r1[:])
 
 ## `struct` 和 `[]byte` 的相互转化
 
-> Data must be a fixed-size value or a slice of fixed-size values, or a pointer to such data. Boolean values encode as one byte: 1 for true, and 0 for false. Bytes written to w are encoded using the specified byte order and read from successive fields of the data. When writing structs, zero values are written for fields with blank (_) field names.
-> 
+> Data must be a fixed-size value or a slice of fixed-size values, or a pointer to such data. Boolean values encode as
+> one byte: 1 for true, and 0 for false. Bytes written to w are encoded using the specified byte order and read from
+> successive fields of the data. When writing structs, zero values are written for fields with blank (_) field names.
+>
 > 数据必须是
+
 ## some problem
 
 ### 2022.8.1
@@ -103,9 +106,9 @@ binary.Write(buf, b)
 
 ```go
 for i, v := range rows {
-	&v  // 这里的`v`的地址一直都是同一个		
-	    // 因为每次遍历都是将值拷贝给`v` 
-            // 而`v`一直被复用，所以地址一直不会变
+&v // 这里的`v`的地址一直都是同一个		
+// 因为每次遍历都是将值拷贝给`v` 
+// 而`v`一直被复用，所以地址一直不会变
 }
 ```
 
@@ -120,3 +123,9 @@ for i, v := range rows {
 1. 从文件读入后再次插入的错误原因是，每个Page的长度计算错误，原来是`PageSize`，是`row`的个数，应该乘上`RowSize`
 
 2. 第二个错误是`File.ReadAt`这个函数，传入的`[]byte`长度不能大于`File`文件的长度；
+
+### 2022.9.11
+
+B+树的分裂
+
+
