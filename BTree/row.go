@@ -51,6 +51,15 @@ func (r *Row) Serialize() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func (r *Row) Deserialize(b []byte) error {
+	buf := bytes.NewBuffer(b)
+	err := binary.Read(buf, binary.BigEndian, &r)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func DeserializeRow(byt []byte) (*Row, error) {
 	buf := bytes.NewBuffer(byt)
 	r := Row{}

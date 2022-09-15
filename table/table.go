@@ -34,7 +34,7 @@ func (t *Table) init(filename string) *Table {
 //	pageNum := t.Size / BTree.ROWS_PER_PAGE
 //	p := t.Pager.GetPage(pageNum)
 //	p.CellNums++
-//	p.Cells[p.CellNums] = BTree.NodeCell{
+//	p.Cells[p.CellNums] = BTree.LeafNodeCell{
 //		Key:   r.Id,
 //		Value: *r,
 //	}

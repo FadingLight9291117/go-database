@@ -133,7 +133,7 @@ func (c *Cursor) InsertLeafNode(key uint32, value *BTree.Row) error {
 		}
 	}
 	page.CellNums++
-	page.Cells[c.CellNum] = BTree.NodeCell{
+	page.Cells[c.CellNum] = BTree.LeafNodeCell{
 		Key:   key,
 		Value: *value,
 	}
@@ -156,9 +156,9 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint32, value *BTree.Row) {
 	const leafNodeRightSplitCount = BTree.LEAF_NODE_MAX_CELLS + 1 - leafNodeLeftSplitCount
 	cells := oldNode.Cells
 	for i := BTree.LEAF_NODE_MAX_CELLS; i >= 0; i-- {
-		var cell *BTree.NodeCell
+		var cell *BTree.LeafNodeCell
 		if i == c.CellNum {
-			cell = &BTree.NodeCell{
+			cell = &BTree.LeafNodeCell{
 				Key:   key,
 				Value: *value,
 			}
