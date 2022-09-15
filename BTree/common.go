@@ -12,11 +12,11 @@ const (
 type CommonNodeHeader struct {
 	Type      NodeType
 	IsRoot    bool
-	ParentPtr unsafe.Pointer // 无法序列化
+	ParentPtr uint64 // 无法序列化
 }
 
 /**
- * Common Node Header Layout (10 byte)
+ * CommonNode Header Layout (10 byte)
  * type(1 byte) - isRoot(1 byte) - parentPtr(8 byte)
  */
 const (

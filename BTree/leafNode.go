@@ -7,7 +7,7 @@ import (
 )
 
 /**
- * Leaf Node Header Layout (10 byte)
+ * LeafNode Header Layout (10 byte)
  * type(1 byte) - isRoot(1 byte) - parentPtr(8 bytes) + cell_nums(8 bytes)
  */
 const (
@@ -17,7 +17,7 @@ const (
 )
 
 /**
- *	Leaf Node Body Layout
+ *	LeafNode Body Layout
  *  key(8 bytes) - value(164 bytes) (N)
  */
 const (
@@ -63,46 +63,6 @@ func GetLeafNodeCell(b *[]byte, cellNum int) (*LeafNodeCell, error) {
 	return cell, nil
 }
 
-func GetLeafNodeKey(b *[]byte, cellNum int) (uint64, error) {
-	cell, err := GetLeafNodeCell(b, cellNum)
-	if err != nil {
-		return 0, err
-	}
-	return cell.Key, nil
-}
-
-func GetLeafNodeValue(b *[]byte, cellNum int) (*Row, error) {
-	cell, err := GetLeafNodeCell(b, cellNum)
-	if err != nil {
-		return nil, err
-	}
-	return &cell.Value, nil
-}
-
-// CreateLeafNode 将node的cellNum置零
-func CreateLeafNode() *LeafNode {
-	node := &LeafNode{
-		LeafNodeHeader: LeafNodeHeader{
-			CommonNodeHeader: CommonNodeHeader{Type: NODE_TYPE_LEAF},
-		},
-	}
-	return node
-}
-
-func SerializeLeafNode(node *LeafNode) ([]byte, error) {
-	buf := new(bytes.Buffer)
-	data := []any{node.Type, node.IsRoot, uint64(0), node.CellNums, node.Cells}
-	for _, v := range data {
-		err := binary.Write(buf, binary.BigEndian, v)
-		if err != nil {
-			return nil, err
-		}
-	}
-	space := make([]byte, LEAF_NODE_BLANK_SIZE)
-	buf.Write(space)
-	return buf.Bytes(), nil
-}
-
 func (node *LeafNode) Serialize() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	data := []any{node.Type, node.IsRoot, uint64(0), node.CellNums, node.Cells}
@@ -117,57 +77,23 @@ func (node *LeafNode) Serialize() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func DeSerializeLeafNode(b []byte) (*LeafNode, error) {
-	buf := bytes.NewReader(b[:LEAF_NODE_SIZE])
-
-	var data struct {
-		Type      NodeType
-		IsRoot    bool
-		ParentPtr uint64
-		CellNums  uint64
-		Cells     [LEAF_NODE_MAX_CELLS]LeafNodeCell
-	}
-	err := binary.Read(buf, binary.BigEndian, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	leafNode := &LeafNode{
-		LeafNodeHeader: LeafNodeHeader{
-			CommonNodeHeader: CommonNodeHeader{
-				Type:      data.Type,
-				IsRoot:    data.IsRoot,
-				ParentPtr: nil,
-			},
-			CellNums: data.CellNums,
-		},
-		Cells: data.Cells,
-	}
-	return leafNode, nil
-}
-
 func (node *LeafNode) Deserialize(b []byte) error {
 	buf := bytes.NewReader(b[:LEAF_NODE_SIZE])
-
-	var data struct {
-		Type      NodeType
-		IsRoot    bool
-		ParentPtr uint64
-		CellNums  uint64
-		Cells     [LEAF_NODE_MAX_CELLS]LeafNodeCell
-	}
-	err := binary.Read(buf, binary.BigEndian, &data)
+	err := binary.Read(buf, binary.BigEndian, node)
 	if err != nil {
 		return err
 	}
-	node.LeafNodeHeader.CommonNodeHeader.Type = data.Type
-	node.LeafNodeHeader.CommonNodeHeader.IsRoot = data.IsRoot
-	node.LeafNodeHeader.CommonNodeHeader.ParentPtr = nil
-	node.LeafNodeHeader.CellNums = data.CellNums
-	node.Cells = data.Cells
 	return nil
 }
 
-func (node *LeafNode) IsRoot() {
-	return
+func (node *LeafNode) IsRootNode() bool {
+	return node.IsRoot
+}
+
+func (node *LeafNode) SetRootNode(isRoot bool) {
+	node.IsRoot = isRoot
+}
+
+func (node *LeafNode) GetMaxKey() uint64 {
+	return node.Cells[node.CellNums-1].Key
 }

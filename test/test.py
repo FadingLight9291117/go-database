@@ -8,10 +8,14 @@ proc = subprocess.Popen("go run .",
                         stderr=subprocess.PIPE,
                         )
 
+
+def get_i():
+    for i in range(23):
+        yield i
+
+
 inputs = "\n".join(
-    [
-        "insert 0 clz email",
-    ] * 24 + [".exit"]
+    [f"insert {i} clz email" for i in get_i()] + [".exit"]
 )
 
 out, error = proc.communicate(input=inputs)

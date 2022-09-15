@@ -1,9 +1,13 @@
 package BTree
 
-import "unsafe"
+import (
+	"bytes"
+	"encoding/binary"
+	"unsafe"
+)
 
 /**
- * Internal Node Header Layout (14 bytes)
+ * InternalNode Header Layout (14 bytes)
  * type(1 byte) - isRoot(1 byte) - parentPtr(8 bytes) + cell_nums(4 bytes) + right_child(8 bytes)
  */
 const (
@@ -15,7 +19,7 @@ const (
 )
 
 /**
- * Internal Node Body Layout
+ * InternalNode Body Layout
  * key(8 bytes) - value(? bytes) (N)
  */
 const (
@@ -42,13 +46,43 @@ const (
 type InternalNodeHeader struct {
 	CommonNodeHeader
 	CellNums   uint64
-	RightChild unsafe.Pointer
+	RightChild uint64
 }
 type InternalNodeCell struct {
-	ChildPointer unsafe.Pointer
+	ChildPointer uint64
 	Key          uint64
 }
 type InternalNode struct {
 	InternalNodeHeader
 	Cells [INTERNAL_NODE_MAX_CELLS]InternalNodeCell
+}
+
+func (node *InternalNode) Serialize() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	err := binary.Write(buf, binary.BigEndian, node)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), err
+}
+
+func (node *InternalNode) Deserialize(b []byte) error {
+	buf := bytes.NewBuffer(b)
+	err := binary.Read(buf, binary.BigEndian, node)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (node *InternalNode) IsRootNode() bool {
+	return node.IsRoot
+}
+
+func (node *InternalNode) SetRootNode(isRoot bool) {
+	node.IsRoot = isRoot
+}
+
+func (node *InternalNode) GetMaxKey() uint64 {
+	return node.Cells[node.CellNums-1].Key
 }
