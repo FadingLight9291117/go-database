@@ -9,19 +9,15 @@ type Page struct {
 }
 
 func (p *Page) Serialize() ([]byte, error) {
-	b, err := BTree.SerializeLeafNode(&p.LeafNode)
+	b, err := p.Serialize()
 	return b, err
 }
 
-func DeserializePage(bs []byte) (*Page, error) {
-	node, err := BTree.DeSerializeLeafNode(bs)
-	return &Page{*node}, err
-}
-
-func (p *Page) IsNodeRoot() bool {
-	return p.IsRoot
-}
-
-func (p *Page) CopyFrom(op *Page) {
-	p.LeafNode = op.LeafNode
+func DeserializePage(b []byte) (*Page, error) {
+	p := &Page{}
+	err := p.Deserialize(b)
+	if err != nil {
+		return nil, err
+	}
+	return p, err
 }

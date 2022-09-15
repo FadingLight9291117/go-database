@@ -167,3 +167,7 @@ func (node *LeafNode) Deserialize(b []byte) error {
 	node.Cells = data.Cells
 	return nil
 }
+
+func (node *LeafNode) IsRoot() {
+	return
+}

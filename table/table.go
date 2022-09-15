@@ -84,5 +84,5 @@ func (t *Table) Close() error {
 //	rightChild := t.Pager.GetPage(rightChildPageNum)
 //	leftChild := t.Pager.GetPage(t.Pager.GetUnusedPageNum())
 //	leftChild.CopyFrom(root)
-//	root
+//	root =
 //}

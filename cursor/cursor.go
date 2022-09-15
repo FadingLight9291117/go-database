@@ -179,7 +179,7 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint64, value *BTree.Row) {
 	oldNode.CellNums = uint64(leafNodeLeftSplitCount)
 	newNode.CellNums = uint64(leafNodeRightSplitCount)
 
-	if oldNode.IsNodeRoot() {
+	if c.Table.RootPageNum == c.PageNum {
 		//c.Table.CreateNewRoot(newPageNum)
 	} else {
 		fmt.Println("need to implement updating parent after split.")
