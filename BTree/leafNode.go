@@ -6,27 +6,12 @@ import (
 	"unsafe"
 )
 
-type LeafNodeHeader struct {
-	CommonNodeHeader
-	CellNums uint32
-}
-
-type LeafNodeCell struct {
-	Key   uint32
-	Value Row
-}
-
-type LeafNode struct {
-	LeafNodeHeader
-	Cells [LEAF_NODE_MAX_CELLS]LeafNodeCell
-}
-
 /**
- * Leaf Node Header Layout (14 byte)
- * type(1 byte) - isRoot(1 byte) - parentPtr(8 bytes) + cell_nums(4 bytes)
+ * Leaf Node Header Layout (10 byte)
+ * type(1 byte) - isRoot(1 byte) - parentPtr(8 bytes) + cell_nums(8 bytes)
  */
 const (
-	LEAF_NODE_CELL_NUMS_SIZE   = int(unsafe.Sizeof(uint32(0)))
+	LEAF_NODE_CELL_NUMS_SIZE   = int(unsafe.Sizeof(uint64(0)))
 	LEAF_NODE_CELL_NUMS_OFFSET = int(COMMON_NODE_HEADER_SIZE)
 	LEAF_NODE_HEADER_SIZE      = int(COMMON_NODE_HEADER_SIZE + LEAF_NODE_CELL_NUMS_SIZE)
 )
@@ -36,7 +21,7 @@ const (
  *  key(8 bytes) - value(164 bytes) (N)
  */
 const (
-	LEAF_NODE_KEY_SIZE        = int(unsafe.Sizeof(uint32(0)))
+	LEAF_NODE_KEY_SIZE        = int(unsafe.Sizeof(uint64(0)))
 	LEAF_NODE_KEY_OFFSET      = int(0)
 	LEAF_NODE_VALUE_SIZE      = int(ROW_SIZE)
 	LEAF_NODE_VALUE_OFFSET    = int(LEAF_NODE_KEY_OFFSET + LEAF_NODE_KEY_SIZE)
@@ -53,6 +38,21 @@ const (
 	LEAF_NODE_BLANK_SIZE = int(PAGE_SIZE - LEAF_NODE_SIZE)
 )
 
+type LeafNodeHeader struct {
+	CommonNodeHeader
+	CellNums uint64
+}
+
+type LeafNodeCell struct {
+	Key   uint64
+	Value Row
+}
+
+type LeafNode struct {
+	LeafNodeHeader
+	Cells [LEAF_NODE_MAX_CELLS]LeafNodeCell
+}
+
 func GetLeafNodeCell(b *[]byte, cellNum int) (*LeafNodeCell, error) {
 	buf := bytes.NewBuffer((*b)[LEAF_NODE_HEADER_SIZE : LEAF_NODE_HEADER_SIZE+cellNum*LEAF_NODE_CELL_SIZE])
 	var cell *LeafNodeCell
@@ -63,7 +63,7 @@ func GetLeafNodeCell(b *[]byte, cellNum int) (*LeafNodeCell, error) {
 	return cell, nil
 }
 
-func GetLeafNodeKey(b *[]byte, cellNum int) (uint32, error) {
+func GetLeafNodeKey(b *[]byte, cellNum int) (uint64, error) {
 	cell, err := GetLeafNodeCell(b, cellNum)
 	if err != nil {
 		return 0, err
@@ -124,7 +124,7 @@ func DeSerializeLeafNode(b []byte) (*LeafNode, error) {
 		Type      NodeType
 		IsRoot    bool
 		ParentPtr uint64
-		CellNums  uint32
+		CellNums  uint64
 		Cells     [LEAF_NODE_MAX_CELLS]LeafNodeCell
 	}
 	err := binary.Read(buf, binary.BigEndian, &data)
@@ -153,7 +153,7 @@ func (node *LeafNode) Deserialize(b []byte) error {
 		Type      NodeType
 		IsRoot    bool
 		ParentPtr uint64
-		CellNums  uint32
+		CellNums  uint64
 		Cells     [LEAF_NODE_MAX_CELLS]LeafNodeCell
 	}
 	err := binary.Read(buf, binary.BigEndian, &data)

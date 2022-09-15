@@ -26,7 +26,7 @@ func (p *Pager) init(path string) *Pager {
 	p.PageNums = int(fileInfo.Size() / BTree.PAGE_SIZE)
 
 	if fileInfo.Size()%BTree.PAGE_SIZE != 0 {
-		fmt.Println("Db file is not a whole number of pages. Corrupt file.")
+		fmt.Printf("%s size is %d. Db file is not a whole number of pages. Corrupt file.\n", path, fileInfo.Size())
 		os.Exit(-1)
 	}
 
@@ -86,7 +86,6 @@ func (p *Pager) GetUnusedPageNum() int {
 func (p *Pager) FlushOnePage(pageIndex int) error {
 	page := p.Pages[pageIndex]
 	buf, err := page.Serialize()
-	//buf = buf[:rowNum*ROW_SIZE]
 	if err != nil {
 		return err
 	}
