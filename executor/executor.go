@@ -40,6 +40,9 @@ func DoMetaCommand(inputBuffer *types.InputBuffer, t *table.Table) (MetaCommandR
 	case ".constants":
 		fmt.Println("Constants:")
 		printConstants()
+	case ".btree":
+		fmt.Println("Tree:")
+		t.Pager.PrintTree(0, 0)
 	default:
 		return MetaCommandUnrecognizedCommand, errors.New(fmt.Sprintf("Unrecognized command '%s' .\n", inputBuffer.Buffer))
 	}

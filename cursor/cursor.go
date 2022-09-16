@@ -32,7 +32,7 @@ type Cursor struct {
 
 // Value return the pointed row of the cursor
 func (c *Cursor) Value() *BTree.Row {
-	node, ok := c.Table.Pager.GetPage(c.PageNum).Node.(*BTree.LeafNode)
+	node, ok := c.Table.Pager.GetPage(c.PageNum, 0).Node.(*BTree.LeafNode)
 	if !ok {
 		return nil
 	}
@@ -45,7 +45,7 @@ func (c *Cursor) IsEnd() bool {
 
 func (c *Cursor) Next() *BTree.Row {
 	row := c.Value()
-	node, ok := c.Table.Pager.GetPage(c.PageNum).Node.(*BTree.LeafNode)
+	node, ok := c.Table.Pager.GetPage(c.PageNum, 0).Node.(*BTree.LeafNode)
 	if !ok {
 		return nil
 	}
@@ -66,7 +66,7 @@ func tableStart(table *table.Table) *Cursor {
 	cursor.Table = table
 	cursor.PageNum = table.RootPageNum
 	cursor.CellNum = 0
-	rootNode, ok := table.Pager.GetPage(table.RootPageNum).Node.(*BTree.LeafNode)
+	rootNode, ok := table.Pager.GetPage(table.RootPageNum, 0).Node.(*BTree.LeafNode)
 	if !ok {
 		return nil
 	}
@@ -88,7 +88,7 @@ func tableStart(table *table.Table) *Cursor {
 
 // FindInTable returns a cursor at the position of the given key
 func FindInTable(t *table.Table, key2Insert uint64) *Cursor {
-	rootNode := t.Pager.GetPage(t.RootPageNum)
+	rootNode := t.Pager.GetPage(t.RootPageNum, 0)
 	switch rootNode.Node.(type) {
 	case *BTree.LeafNode:
 		return findInLeafNode(t, t.RootPageNum, key2Insert)
@@ -102,8 +102,7 @@ func FindInTable(t *table.Table, key2Insert uint64) *Cursor {
 }
 
 func findInLeafNode(t *table.Table, pageNum int, key uint64) *Cursor {
-	if page, ok := t.Pager.GetPage(pageNum).Node.(*BTree.LeafNode); ok {
-
+	if page, ok := t.Pager.GetPage(pageNum, 0).Node.(*BTree.LeafNode); ok {
 		cellNums := int(page.CellNums)
 
 		c := &Cursor{
@@ -136,7 +135,7 @@ func findInLeafNode(t *table.Table, pageNum int, key uint64) *Cursor {
 }
 
 func (c *Cursor) InsertLeafNode(key uint64, value *BTree.Row) error {
-	page, ok := c.Table.Pager.GetPage(c.PageNum).Node.(*BTree.LeafNode)
+	page, ok := c.Table.Pager.GetPage(c.PageNum, 0).Node.(*BTree.LeafNode)
 	if !ok {
 		return errors.New("error: not a leaf node")
 	}
@@ -165,8 +164,8 @@ func (c *Cursor) InsertLeafNode(key uint64, value *BTree.Row) error {
 // update parent or create a new parent.
 func (c *Cursor) splitLeafNodeAndInsert(key uint64, value *BTree.Row) {
 	newPageNum := c.Table.Pager.GetUnusedPageNum()
-	oldNode, ok1 := c.Table.Pager.GetPage(c.PageNum).Node.(*BTree.LeafNode)
-	newNode, ok2 := c.Table.Pager.GetPage(newPageNum).Node.(*BTree.LeafNode)
+	oldNode, ok1 := c.Table.Pager.GetPage(c.PageNum, 0).Node.(*BTree.LeafNode)
+	newNode, ok2 := c.Table.Pager.GetPage(newPageNum, 0).Node.(*BTree.LeafNode)
 
 	if !(ok1 && ok2) {
 		return
@@ -196,7 +195,7 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint64, value *BTree.Row) {
 			oldNode.Cells[i] = *cell
 		} else {
 			//right
-			newNode.Cells[i - leafNodeLeftSplitCount] = *cell
+			newNode.Cells[i-leafNodeLeftSplitCount] = *cell
 		}
 	}
 	oldNode.CellNums = uint64(leafNodeLeftSplitCount)

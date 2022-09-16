@@ -75,11 +75,11 @@ func (node *InternalNode) Deserialize(b []byte) error {
 	return nil
 }
 
-func (node *InternalNode) IsRootNode() bool {
+func (node *InternalNode) IsNodeRoot() bool {
 	return node.IsRoot
 }
 
-func (node *InternalNode) SetRootNode(isRoot bool) {
+func (node *InternalNode) SetNodeRoot(isRoot bool) {
 	node.IsRoot = isRoot
 }
 

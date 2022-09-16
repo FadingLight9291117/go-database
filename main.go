@@ -60,7 +60,8 @@ func main() {
 		// 处理 `meta-command`
 		// 类似 `.exit`以 `.`开头的命令被称为 `meta-command`(元命令)
 		if inputBuffer.Buffer[0] == '.' {
-			if _, err := executor.DoMetaCommand(inputBuffer, t); err != nil {
+			_, err := executor.DoMetaCommand(inputBuffer, t)
+			if err != nil {
 				fmt.Println(err)
 			}
 			continue

@@ -17,7 +17,7 @@ func (t *Table) init(filename string) *Table {
 	t.RootPageNum = 0
 	if pager.PageNums == 0 {
 		// New database file. Initialize page 0 as leaf node.
-		t.Pager.GetPage(0).SetRootNode(true)
+		t.Pager.GetPage(0, 0).SetNodeRoot(true)
 	}
 
 	return t
@@ -29,7 +29,7 @@ func (t *Table) Select() []*BTree.Row {
 	pageNum := t.Pager.FileSize / BTree.PAGE_SIZE
 
 	for i := 0; i < pageNum; i++ {
-		page := t.Pager.GetPage(i)
+		page := t.Pager.GetPage(i, 0)
 		if node, ok := page.Node.(*BTree.LeafNode); ok {
 			for j := 0; j < int(node.CellNums); j++ {
 				rows = append(rows, &node.Cells[j].Value)
@@ -43,12 +43,13 @@ func (t *Table) Select() []*BTree.Row {
 
 func (t *Table) Close() error {
 	pager := t.Pager
-	// FIXME: This only save a single node table
-	err := pager.FlushOnePage(t.RootPageNum)
-	if err != nil {
-		return err
+	for i := 0; i < pager.PageNums; i++ {
+		err := pager.FlushOnePage(i)
+		if err != nil {
+			return err
+		}
 	}
-	err = t.Pager.File.Close()
+	err := t.Pager.File.Close()
 	if err != nil {
 		return err
 	}
@@ -64,15 +65,15 @@ func (t *Table) CreateNewRoot(rightChildPageNum int) {
 		Re-initialize root page to contain the new root node.
 		New root node points to the two child
 	*/
-	root := t.Pager.GetPage(t.RootPageNum)
+	root := t.Pager.GetPage(t.RootPageNum, 0)
 	//rightChild := t.Pager.GetPage(rightChildPageNum)
 	leftChildNum := t.Pager.GetUnusedPageNum()
-	leftChild := t.Pager.GetPage(leftChildNum)
+	leftChild := t.Pager.GetPage(leftChildNum, 0)
 	*leftChild = *root
-	leftChild.SetRootNode(false)
+	leftChild.SetNodeRoot(false)
 	// new root
 	*root = Page{BTree.CreateInternalNode()}
-	root.SetRootNode(true)
+	root.SetNodeRoot(true)
 	if rootNode, ok := root.Node.(*BTree.InternalNode); ok {
 		rootNode.CellNums = 1
 		rootNode.Cells[0].ChildPointer = uint64(leftChildNum)

@@ -33,8 +33,8 @@ func (p *Pager) init(path string) *Pager {
 	return p
 }
 
-//GetPage FIXME: only return a leaf node
-func (p *Pager) GetPage(pageNum int) *Page {
+// GetPage nodeType: 当page不存在时，新建的node类型
+func (p *Pager) GetPage(pageNum int, nodeType BTree.NodeType) *Page {
 	if pageNum > MAX_PAGE {
 		panic("Tried to fetch page number out of bounds.")
 	}
@@ -42,7 +42,14 @@ func (p *Pager) GetPage(pageNum int) *Page {
 	if p.Pages[pageNum] == nil {
 		pageSize := BTree.PAGE_SIZE
 		// Cache miss.Allocate memory and load from file.
-		p.Pages[pageNum] = &Page{BTree.CreateLeafNode()}
+		var node BTree.Node
+		switch nodeType {
+		case BTree.NODE_TYPE_INTERNAL:
+			node = BTree.CreateInternalNode()
+		case BTree.NODE_TYPE_LEAF:
+			node = BTree.CreateLeafNode()
+		}
+		p.Pages[pageNum] = &Page{node}
 
 		// 文件中的 `page` 总数
 		filePagesNum := p.FileSize / pageSize
@@ -59,11 +66,11 @@ func (p *Pager) GetPage(pageNum int) *Page {
 			if err != nil {
 				return nil
 			}
-			pg := &Page{BTree.CreateLeafNode()}
-			err = pg.Deserialize(b)
+			node, err := BTree.DeserializeNode(b)
 			if err != nil {
 				return nil
 			}
+			pg := &Page{node}
 			p.Pages[pageNum] = pg
 			if pageNum >= p.PageNums {
 				p.PageNums++
@@ -98,8 +105,52 @@ func (p *Pager) FlushOnePage(pageIndex int) error {
 	if err != nil {
 		return err
 	}
-	if err != nil {
-		return err
-	}
+
 	return nil
+}
+
+func (p *Pager) PrintTree(pageNum int, indentationLevel int) {
+	indent := func(indentationLevel int) {
+		for i := 0; i < indentationLevel; i++ {
+			fmt.Print("  ")
+		}
+	}
+	node := p.GetPage(pageNum, 0).Node
+
+	switch node.(type) {
+	case *BTree.LeafNode:
+		leafNode := node.(*BTree.LeafNode)
+		keyNums := leafNode.CellNums
+		cells := leafNode.Cells[:keyNums]
+		indent(indentationLevel)
+		fmt.Printf("- leaf (size %d)", keyNums)
+		if leafNode.IsNodeRoot() {
+			fmt.Printf(" (Root)")
+		}
+		fmt.Println()
+		for _, cell := range cells {
+			indent(indentationLevel + 1)
+			fmt.Printf("- %d\n", cell.Key)
+		}
+	case *BTree.InternalNode:
+		internalNode := node.(*BTree.InternalNode)
+		keyNums := internalNode.CellNums
+		cells := internalNode.Cells[:keyNums]
+		indent(indentationLevel)
+		fmt.Printf("- internal (size %d)", keyNums)
+		if internalNode.IsNodeRoot() {
+			fmt.Printf(" (Root)")
+		}
+		fmt.Println()
+		for _, cell := range cells {
+			childIdx := cell.ChildPointer
+			p.PrintTree(int(childIdx), indentationLevel+1)
+			indent(indentationLevel + 1)
+			fmt.Printf("- key %d\n", cell.Key)
+		}
+		rightChild := internalNode.RightChild
+		p.PrintTree(int(rightChild), indentationLevel+1)
+	default:
+		return
+	}
 }

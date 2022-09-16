@@ -10,7 +10,7 @@ import (
 )
 
 func ExecuteInsert(statement *types.Statement, t *table.Table) (ExecuteResult, error) {
-	if p, ok := t.Pager.GetPage(t.RootPageNum).Node.(*BTree.LeafNode); ok {
+	if p, ok := t.Pager.GetPage(t.RootPageNum, 0).Node.(*BTree.LeafNode); ok {
 		row2Insert := statement.Row2Insert
 		key2Inset := row2Insert.Id
 		c := cursor.FindInTable(t, key2Inset) // create a cursor pasted the end of the t

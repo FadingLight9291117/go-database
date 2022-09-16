@@ -86,11 +86,11 @@ func (node *LeafNode) Deserialize(b []byte) error {
 	return nil
 }
 
-func (node *LeafNode) IsRootNode() bool {
+func (node *LeafNode) IsNodeRoot() bool {
 	return node.IsRoot
 }
 
-func (node *LeafNode) SetRootNode(isRoot bool) {
+func (node *LeafNode) SetNodeRoot(isRoot bool) {
 	node.IsRoot = isRoot
 }
 

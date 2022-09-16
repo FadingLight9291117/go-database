@@ -5,8 +5,8 @@ import "unsafe"
 type NodeType = uint8
 
 const (
-	NODE_TYPE_INTERNAL NodeType = iota
-	NODE_TYPE_LEAF
+	NODE_TYPE_LEAF NodeType = iota
+	NODE_TYPE_INTERNAL
 )
 
 type CommonNodeHeader struct {
