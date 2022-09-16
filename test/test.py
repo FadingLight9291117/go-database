@@ -10,7 +10,7 @@ proc = subprocess.Popen("go run .",
 
 
 def get_i():
-    for i in range(23):
+    for i in range(5):
         yield i
 
 

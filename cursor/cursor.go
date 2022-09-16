@@ -93,45 +93,77 @@ func FindInTable(t *table.Table, key2Insert uint64) *Cursor {
 	case *BTree.LeafNode:
 		return findInLeafNode(t, t.RootPageNum, key2Insert)
 	case *BTree.InternalNode:
-		fmt.Println("Need to implement searching an internal node.")
-		os.Exit(1)
-		return nil
+		return findInInternalNode(t, t.RootPageNum, key2Insert)
 	default:
 		return nil
 	}
 }
 
 func findInLeafNode(t *table.Table, pageNum int, key uint64) *Cursor {
-	if page, ok := t.Pager.GetPage(pageNum, 0).Node.(*BTree.LeafNode); ok {
-		cellNums := int(page.CellNums)
+	page := t.Pager.GetPage(pageNum, 0).Node.(*BTree.LeafNode)
+	cellNums := int(page.CellNums)
 
-		c := &Cursor{
-			Table:      t,
-			PageNum:    pageNum,
-			EndOfTable: false,
-			CellNum:    int(page.CellNums),
-		}
-
-		// binary search
-		lIndex := 0
-		rIndex := cellNums
-		for lIndex < rIndex {
-			midIndex := (lIndex + rIndex) / 2
-			if page.Cells[midIndex].Key == key {
-				c.CellNum = midIndex
-				return c
-			}
-			if page.Cells[midIndex].Key > key {
-				rIndex = midIndex
-			} else {
-				lIndex = midIndex + 1
-			}
-		}
-
-		c.CellNum = lIndex
-		return c
+	c := &Cursor{
+		Table:      t,
+		PageNum:    pageNum,
+		EndOfTable: false,
+		CellNum:    int(page.CellNums),
 	}
-	return nil
+
+	// binary search
+	lIndex := 0
+	rIndex := cellNums
+	for lIndex < rIndex {
+		midIndex := (lIndex + rIndex) / 2
+		if page.Cells[midIndex].Key == key {
+			c.CellNum = midIndex
+			return c
+		}
+		if page.Cells[midIndex].Key > key {
+			rIndex = midIndex
+		} else {
+			lIndex = midIndex + 1
+		}
+	}
+
+	c.CellNum = lIndex
+	return c
+}
+
+func findInInternalNode(t *table.Table, pageNum int, key uint64) *Cursor {
+	node := t.Pager.GetPage(pageNum, 1).Node.(*BTree.InternalNode)
+	cells := node.Cells[:node.CellNums]
+	// binary search key
+	left := 0
+	right := len(cells)
+	for left < right {
+		mid := (left + right) / 2
+		if key == cells[mid].Key {
+			left = mid
+			break
+		}
+		if key < cells[mid].Key {
+			right = mid
+		} else {
+			left = mid + 1
+		}
+	}
+	var childPointer uint64
+	if left == len(cells) {
+		childPointer = node.RightChild
+	} else {
+		childPointer = cells[left].ChildPointer
+	}
+
+	child := t.Pager.GetPage(int(childPointer), 0).Node
+	switch child.(type) {
+	case *BTree.LeafNode:
+		return findInLeafNode(t, int(childPointer), key)
+	case *BTree.InternalNode:
+		return findInInternalNode(t, int(childPointer), key)
+	default:
+		return nil
+	}
 }
 
 func (c *Cursor) InsertLeafNode(key uint64, value *BTree.Row) error {
