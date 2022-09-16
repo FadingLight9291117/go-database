@@ -17,30 +17,11 @@ func (t *Table) init(filename string) *Table {
 	t.RootPageNum = 0
 	if pager.PageNums == 0 {
 		// New database file. Initialize page 0 as leaf node.
-		t.Pager.GetPage(0)
+		t.Pager.GetPage(0).SetRootNode(true)
 	}
 
 	return t
 }
-
-//func (t *Table) IsFull() bool {
-//	return t.Size == MAX_PAGE*BTree.ROWS_PER_PAGE
-//}
-
-//func (t *Table) Insert(r *BTree.Row) *Table {
-//	if t.IsFull() {
-//		panic("table is full.")
-//	}
-//	pageNum := t.Size / BTree.ROWS_PER_PAGE
-//	p := t.Pager.GetPage(pageNum)
-//	p.CellNums++
-//	p.Cells[p.CellNums] = BTree.NodeCell{
-//		Key:   r.Id,
-//		Value: *r,
-//	}
-//
-//	return t
-//}
 
 func (t *Table) Select() []*BTree.Row {
 	rows := make([]*BTree.Row, 0)
@@ -49,9 +30,12 @@ func (t *Table) Select() []*BTree.Row {
 
 	for i := 0; i < pageNum; i++ {
 		page := t.Pager.GetPage(i)
-		for j := 0; j < int(page.CellNums); j++ {
-			rows = append(rows, &page.Cells[j].Value)
+		if node, ok := page.Node.(*BTree.LeafNode); ok {
+			for j := 0; j < int(node.CellNums); j++ {
+				rows = append(rows, &node.Cells[j].Value)
+			}
 		}
+
 	}
 
 	return rows
@@ -81,8 +65,20 @@ func (t *Table) CreateNewRoot(rightChildPageNum int) {
 		New root node points to the two child
 	*/
 	root := t.Pager.GetPage(t.RootPageNum)
-	rightChild := t.Pager.GetPage(rightChildPageNum)
-	leftChild := t.Pager.GetPage(t.Pager.GetUnusedPageNum())
-	leftChild.CopyFrom(root)
-	root
+	//rightChild := t.Pager.GetPage(rightChildPageNum)
+	leftChildNum := t.Pager.GetUnusedPageNum()
+	leftChild := t.Pager.GetPage(leftChildNum)
+	*leftChild = *root
+	leftChild.SetRootNode(false)
+	// new root
+	*root = Page{BTree.CreateInternalNode()}
+	root.SetRootNode(true)
+	if rootNode, ok := root.Node.(*BTree.InternalNode); ok {
+		rootNode.CellNums = 1
+		rootNode.Cells[0].ChildPointer = uint64(leftChildNum)
+		rootNode.Cells[0].Key = leftChild.GetMaxKey()
+		rootNode.RightChild = uint64(rightChildPageNum)
+	} else {
+		panic("error: not a internal node")
+	}
 }

@@ -9,7 +9,7 @@ import (
 
 // 1个rune是4个字节
 const (
-	ID_SIZE       = int(unsafe.Sizeof(uint32(0)))
+	ID_SIZE       = int(unsafe.Sizeof(uint64(0)))
 	USERNAME_SIZE = int(ColumnUsernameSize * unsafe.Sizeof(rune(' ')))
 	EMAIL_SIZE    = int(ColumnEmailSize * unsafe.Sizeof(rune(' ')))
 )
@@ -20,7 +20,7 @@ const (
 )
 
 type Row struct {
-	Id       uint32
+	Id       uint64
 	Username [ColumnUsernameSize]rune
 	Email    [ColumnEmailSize]rune
 }
@@ -33,7 +33,7 @@ func (r *Row) Copy(or *Row) {
 
 func NewRow(id int, username string, email string) *Row {
 	row := Row{}
-	row.Id = uint32(id)
+	row.Id = uint64(id)
 	copy(row.Username[:], []rune(username))
 	copy(row.Email[:], []rune(email))
 	return &row
@@ -49,6 +49,15 @@ func (r *Row) Serialize() ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func (r *Row) Deserialize(b []byte) error {
+	buf := bytes.NewBuffer(b)
+	err := binary.Read(buf, binary.BigEndian, &r)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func DeserializeRow(byt []byte) (*Row, error) {

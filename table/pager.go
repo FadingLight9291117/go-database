@@ -26,13 +26,14 @@ func (p *Pager) init(path string) *Pager {
 	p.PageNums = int(fileInfo.Size() / BTree.PAGE_SIZE)
 
 	if fileInfo.Size()%BTree.PAGE_SIZE != 0 {
-		fmt.Println("Db file is not a whole number of pages. Corrupt file.")
+		fmt.Printf("%s size is %d. Db file is not a whole number of pages. Corrupt file.\n", path, fileInfo.Size())
 		os.Exit(-1)
 	}
 
 	return p
 }
 
+//GetPage FIXME: only return a leaf node
 func (p *Pager) GetPage(pageNum int) *Page {
 	if pageNum > MAX_PAGE {
 		panic("Tried to fetch page number out of bounds.")
@@ -41,7 +42,7 @@ func (p *Pager) GetPage(pageNum int) *Page {
 	if p.Pages[pageNum] == nil {
 		pageSize := BTree.PAGE_SIZE
 		// Cache miss.Allocate memory and load from file.
-		p.Pages[pageNum] = &Page{*BTree.CreateLeafNode()}
+		p.Pages[pageNum] = &Page{BTree.CreateLeafNode()}
 
 		// 文件中的 `page` 总数
 		filePagesNum := p.FileSize / pageSize
@@ -58,8 +59,8 @@ func (p *Pager) GetPage(pageNum int) *Page {
 			if err != nil {
 				return nil
 			}
-
-			pg, err := DeserializePage(b)
+			pg := &Page{BTree.CreateLeafNode()}
+			err = pg.Deserialize(b)
 			if err != nil {
 				return nil
 			}
@@ -85,8 +86,10 @@ func (p *Pager) GetUnusedPageNum() int {
 
 func (p *Pager) FlushOnePage(pageIndex int) error {
 	page := p.Pages[pageIndex]
+	if page == nil {
+		return nil
+	}
 	buf, err := page.Serialize()
-	//buf = buf[:rowNum*ROW_SIZE]
 	if err != nil {
 		return err
 	}
