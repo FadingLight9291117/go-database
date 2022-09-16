@@ -167,13 +167,12 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint32, value *BTree.Row) {
 		} else {
 			cell = &cells[i]
 		}
-		indexInNode := i % leafNodeLeftSplitCount
 		if i < leafNodeLeftSplitCount {
 			// left
-			oldNode.Cells[indexInNode] = *cell
+			oldNode.Cells[i] = *cell
 		} else {
 			//right
-			newNode.Cells[indexInNode] = *cell
+			newNode.Cells[i - leafNodeLeftSplitCount] = *cell
 		}
 	}
 	oldNode.CellNums = uint32(leafNodeLeftSplitCount)
