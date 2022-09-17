@@ -17,6 +17,7 @@ type Node interface {
 func CreateLeafNode() *LeafNode {
 	node := &LeafNode{}
 	node.Type = NODE_TYPE_LEAF
+	node.ParentNum = 0
 	node.IsRoot = false
 	node.CellNums = 0
 	node.NextLeaf = 0
@@ -26,6 +27,7 @@ func CreateLeafNode() *LeafNode {
 func CreateInternalNode() *InternalNode {
 	node := &InternalNode{}
 	node.Type = NODE_TYPE_INTERNAL
+	node.ParentNum = 0
 	node.IsRoot = false
 	node.CellNums = 0
 	return node

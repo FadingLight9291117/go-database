@@ -74,12 +74,14 @@ func (t *Table) CreateNewRoot(rightChildPageNum int) {
 	// new root
 	*root = Page{BTree.CreateInternalNode()}
 	root.SetNodeRoot(true)
-	if rootNode, ok := root.Node.(*BTree.InternalNode); ok {
-		rootNode.CellNums = 1
-		rootNode.Cells[0].ChildPointer = uint64(leftChildNum)
-		rootNode.Cells[0].Key = leftChild.GetMaxKey()
-		rootNode.RightChild = uint64(rightChildPageNum)
-	} else {
-		panic("error: not a internal node")
-	}
+	rootNode := root.Node.(*BTree.InternalNode)
+	rootNode.CellNums = 1
+	rootNode.Cells[0].ChildPointer = uint64(leftChildNum)
+	rootNode.Cells[0].Key = leftChild.GetMaxKey()
+	rootNode.RightChild = uint64(rightChildPageNum)
+
+	leftChildNode := leftChild.Node.(*BTree.LeafNode)
+	rightChildNode := t.Pager.GetPage(rightChildPageNum, 0).Node.(*BTree.LeafNode)
+	leftChildNode.ParentNum = uint64(t.RootPageNum)
+	rightChildNode.ParentNum = uint64(t.RootPageNum)
 }

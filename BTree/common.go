@@ -12,7 +12,7 @@ const (
 type CommonNodeHeader struct {
 	Type      NodeType
 	IsRoot    bool
-	ParentPtr uint64 // 无法序列化
+	ParentNum uint64 // 无法序列化
 }
 
 /**
