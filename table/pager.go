@@ -96,7 +96,7 @@ func (p *Pager) FlushOnePage(pageIndex int) error {
 	if page == nil {
 		return nil
 	}
-	buf, err := page.Serialize()
+	buf, err := BTree.SerializeNode(page.Node)
 	if err != nil {
 		return err
 	}

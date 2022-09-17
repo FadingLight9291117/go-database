@@ -124,8 +124,56 @@ for i, v := range rows {
 
 2. 第二个错误是`File.ReadAt`这个函数，传入的`[]byte`长度不能大于`File`文件的长度；
 
-### 2022.9.11
+### 2022.9.17
 
-B+树的分裂
+1. `unsafe.SizeOf`函数的问题
+
+```go
+type Foo2 struct {
+Test      uint8
+ParentPtr int64
+}
+
+func main() {
+foo := Foo2{}
+fmt.Printf("CommonNodeHeader size is %d\n", unsafe.Sizeof(foo))
+
+buf := &bytes.Buffer{}
+err := binary.Write(buf, binary.BigEndian, foo)
+if err != nil {
+return
+}
+
+fmt.Printf("CommonNodeHeader byes size of is %d\n", len(buf.Bytes()))
+}
+```
+
+输出
+
+```go
+CommonNodeHeader size is 16
+CommonNodeHeader byes size of is 9
+```
+
+明显结构体的SizeOf不正确
+
+原因：结构体的字节对齐
+
+https://www.jianshu.com/p/a2e157c95d9e
+
+> “Go是一个C家族语言，Go的结构体类型基于C语言的结构体演化而来，因此关于字节对齐等概念也是通用的。”
+
+ https://cloud.tencent.com/developer/article/1817214
+ 
+
+> - 在所有结构体成员的字节长度都没有超出操作系统基本字节单位(32位操作系统是4,64位操作系统是8)的情况下，按照结构体中字节最大的变量长度来对齐；
+> - 若结构体中某个变量字节超出操作系统基本字节单位，那么就按照系统字节单位来对齐。
+
+> 字节对齐的根本原因其实在于cpu读取内存的效率问题，对齐以后，cpu读取内存的效率会更快。但是这里有个问题，就是对齐的时候0x00000002~0x00000004
+> 这三个字节是浪费的，所以字节对齐实际上也有那么点以空间换时间的意思，具体写代码的时候怎么选择，其实是看个人的。
 
 
+
+## 扫描多层的B树
+
+为了在到达第一个叶子节点的末尾时，跳转到第二个叶子节点，需要在叶子节点的头部增加一个字段 `NextLeaf`保存右侧兄弟节点的页码

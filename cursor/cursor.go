@@ -44,35 +44,36 @@ func (c *Cursor) IsEnd() bool {
 }
 
 func (c *Cursor) Next() *BTree.Row {
+	// 为了在到达第一个叶子节点的末尾时，跳转到第二个叶子节点，
+	// 需要在叶子节点的头部增加一个字段 `NextLeaf`保存右侧兄弟节点的页码
 	row := c.Value()
 	node, ok := c.Table.Pager.GetPage(c.PageNum, 0).Node.(*BTree.LeafNode)
 	if !ok {
 		return nil
 	}
 	c.CellNum++
+	// todo: 跳转到下一个leafNode
 	if c.CellNum >= int(node.CellNums) {
-		c.EndOfTable = true
+		if node.NextLeaf == 0 {
+			c.EndOfTable = true
+		} else {
+			c.PageNum = node.GetNextLeafNodeNum()
+			c.CellNum = 0
+		}
 	}
 	return row
 }
 
-func CreateStartCursor(table *table.Table) *Cursor {
-	return tableStart(table)
-}
+// CreateStartCursor return a cursor at the beginning of the table
+func CreateStartCursor(t *table.Table) *Cursor {
+	// even if the key does not exist, the method will return
+	//the position of the lowest id (the start of the left-most leaf node)
+	c := FindInTable(t, 0)
+	node := t.Pager.GetPage(c.PageNum, 0).Node.(*BTree.LeafNode)
+	cellNums := node.CellNums
+	c.EndOfTable = cellNums == 0
 
-// tableStart return a cursor at the beginning of the table
-func tableStart(table *table.Table) *Cursor {
-	cursor := &Cursor{}
-	cursor.Table = table
-	cursor.PageNum = table.RootPageNum
-	cursor.CellNum = 0
-	rootNode, ok := table.Pager.GetPage(table.RootPageNum, 0).Node.(*BTree.LeafNode)
-	if !ok {
-		return nil
-	}
-	cursor.EndOfTable = rootNode.CellNums == 0
-
-	return cursor
+	return c
 }
 
 //// tableEnd returns a cursor at the end of the table
@@ -232,6 +233,8 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint64, value *BTree.Row) {
 	}
 	oldNode.CellNums = uint64(leafNodeLeftSplitCount)
 	newNode.CellNums = uint64(leafNodeRightSplitCount)
+	newNode.NextLeaf = oldNode.NextLeaf
+	oldNode.NextLeaf = uint64(newPageNum)
 
 	if oldNode.IsRoot {
 		c.Table.CreateNewRoot(newPageNum)

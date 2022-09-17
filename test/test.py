@@ -1,3 +1,4 @@
+import random
 import subprocess
 
 proc = subprocess.Popen("go run .",
@@ -11,11 +12,11 @@ proc = subprocess.Popen("go run .",
 
 def get_i():
     for i in range(5):
-        yield i
+        yield random.randint(i, i + 100)
 
 
 inputs = "\n".join(
-    [f"insert {i} clz email" for i in get_i()] + [".exit"]
+    [f"insert {i} clz_{i} email_{i}" for i in get_i()] + [".exit"]
 )
 
 out, error = proc.communicate(input=inputs)
