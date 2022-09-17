@@ -85,6 +85,14 @@ func (node *LeafNode) GetMaxKey() uint64 {
 	return node.Cells[node.CellNums-1].Key
 }
 
+func (node *LeafNode) GetParentNum() int {
+	return int(node.ParentNum)
+}
+
 func (node *LeafNode) GetNextLeafNodeNum() int {
 	return int(node.NextLeaf)
+}
+
+func (node *LeafNode) SetParentNum(num int) {
+	node.ParentNum = uint64(num)
 }

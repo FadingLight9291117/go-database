@@ -80,8 +80,6 @@ func (t *Table) CreateNewRoot(rightChildPageNum int) {
 	rootNode.Cells[0].Key = leftChild.GetMaxKey()
 	rootNode.RightChild = uint64(rightChildPageNum)
 
-	leftChildNode := leftChild.Node.(*BTree.LeafNode)
-	rightChildNode := t.Pager.GetPage(rightChildPageNum, 0).Node.(*BTree.LeafNode)
-	leftChildNode.ParentNum = uint64(t.RootPageNum)
-	rightChildNode.ParentNum = uint64(t.RootPageNum)
+	leftChild.SetParentNum(t.RootPageNum)
+	t.Pager.GetPage(rightChildPageNum, 0).SetParentNum(t.RootPageNum)
 }

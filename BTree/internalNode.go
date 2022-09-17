@@ -86,3 +86,35 @@ func (node *InternalNode) SetNodeRoot(isRoot bool) {
 func (node *InternalNode) GetMaxKey() uint64 {
 	return node.Cells[node.CellNums-1].Key
 }
+
+func (node *InternalNode) GetParentNum() int {
+	return int(node.ParentNum)
+}
+
+func (node *InternalNode) SetParentNum(num int) {
+	node.ParentNum = uint64(num)
+}
+
+func (node *InternalNode) UpdateKey(oldKey uint64, newKey uint64) {
+	cellIndex := node.FindChildIdx(oldKey)
+	node.Cells[cellIndex].Key = newKey
+}
+
+func (node *InternalNode) FindChildIdx(key uint64) int {
+	minIndex := 0
+	maxIndex := int(node.CellNums)
+
+	for minIndex < maxIndex {
+		midIndex := (minIndex + maxIndex) / 2
+		if node.Cells[midIndex].Key == key {
+			minIndex = midIndex
+			break
+		}
+		if node.Cells[minIndex].Key > key {
+			maxIndex = minIndex
+		} else {
+			minIndex = midIndex + 1
+		}
+	}
+	return minIndex
+}

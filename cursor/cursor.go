@@ -4,8 +4,6 @@ import (
 	"com.fadinglight/db/BTree"
 	"com.fadinglight/db/table"
 	"errors"
-	"fmt"
-	"os"
 )
 
 /*
@@ -203,6 +201,9 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint64, value *BTree.Row) {
 	if !(ok1 && ok2) {
 		return
 	}
+
+	oldNodeMaxKey := oldNode.GetMaxKey()
+
 	/*
 	  All existing keys plus new key should be divided
 	  evenly between old (left) and new (right) nodes.
@@ -239,7 +240,22 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint64, value *BTree.Row) {
 	if oldNode.IsRoot {
 		c.Table.CreateNewRoot(newPageNum)
 	} else {
-		fmt.Println("need to implement updating parent after split.")
-		os.Exit(1)
+		oldNodeNewMaxKey := oldNode.GetMaxKey()
+		parentPageNum := oldNode.GetParentNum()
+		parentNode := c.Table.Pager.GetPage(parentPageNum, 0).Node.(*BTree.InternalNode)
+		parentNode.UpdateKey(oldNodeMaxKey, oldNodeNewMaxKey)
+
 	}
+}
+
+func InsertChildNodeIntoInternalNode(t *table.Table, parentPageNum int, childPageNum int) {
+	parentNode := t.Pager.GetPage(parentPageNum, 0).Node.(*BTree.InternalNode)
+	child := t.Pager.GetPage(childPageNum, 0).Node
+	if parentNode.CellNums >= uint64(BTree.INTERNAL_NODE_MAX_CELLS) {
+		panic("Need to implement splitting internal node")
+	}
+	maxKey := child.GetMaxKey()
+
+	childIndex := parentNode.FindChildIdx(maxKey)
+
 }

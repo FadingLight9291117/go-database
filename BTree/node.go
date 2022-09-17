@@ -11,6 +11,8 @@ type Node interface {
 	IsNodeRoot() bool
 	SetNodeRoot(isRoot bool)
 	GetMaxKey() uint64
+	GetParentNum() int
+	SetParentNum(num int)
 }
 
 // CreateLeafNode 将node的cellNum置零
