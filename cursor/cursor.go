@@ -248,14 +248,29 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint64, value *BTree.Row) {
 	}
 }
 
+// InsertChildNodeIntoInternalNode InertChildNodeIntoInternalNode
+/*
+ * TODO: 1. 判断parent是否已满; 2. 是否插入到最右侧; 3. 插入中间时移动右侧其他节点;
+ */
 func InsertChildNodeIntoInternalNode(t *table.Table, parentPageNum int, childPageNum int) {
 	parentNode := t.Pager.GetPage(parentPageNum, 0).Node.(*BTree.InternalNode)
 	child := t.Pager.GetPage(childPageNum, 0).Node
+
 	if parentNode.CellNums >= uint64(BTree.INTERNAL_NODE_MAX_CELLS) {
 		panic("Need to implement splitting internal node")
 	}
+
 	maxKey := child.GetMaxKey()
 
-	childIndex := parentNode.FindChildIdx(maxKey)
-
+	if maxKey > t.Pager.GetPage(int(parentNode.RightChild), 0).GetMaxKey() {
+		// replace parent's right child
+		parentNode.Cells[parentNode.CellNums] = BTree.InternalNodeCell{
+			ChildPointer: parentNode.RightChild,
+			Key:          t.Pager.GetPage(int(parentNode.RightChild), 0).GetMaxKey(),
+		}
+		parentNode.RightChild = uint64(childPageNum)
+		parentNode.CellNums++
+	} else {
+		//  make room for the new cell
+	}
 }
