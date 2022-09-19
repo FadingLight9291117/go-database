@@ -51,7 +51,7 @@ func (c *Cursor) Next() *BTree.Row {
 		return nil
 	}
 	c.CellNum++
-	// todo: 跳转到下一个leafNode
+	// 跳转到下一个leafNode
 	if c.CellNum >= int(node.CellNums) {
 		if node.NextLeaf == 0 {
 			c.EndOfTable = true
@@ -175,8 +175,11 @@ func (c *Cursor) InsertLeafNode(key uint64, value *BTree.Row) error {
 	if int(page.CellNums) >= BTree.LEAF_NODE_MAX_CELLS {
 		// Page is full
 		// parent is full
-		//parentNode := c.Table.Pager.GetPage(int(page.ParentNum), 0)
-		//if (c.Table.Pager.GetPage(page.ParentNum, 0).    )) {}
+		if parentNode, ok := c.Table.Pager.GetPage(int(page.ParentNum), 0).Node.(*BTree.InternalNode); ok {
+			if int(parentNode.CellNums) >= BTree.INTERNAL_NODE_MAX_CELLS {
+				return errors.New("need to implement splitting internal node")
+			}
+		}
 		// parent is not full
 		c.splitLeafNodeAndInsert(key, value)
 		return nil

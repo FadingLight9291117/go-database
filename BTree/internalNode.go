@@ -3,6 +3,7 @@ package BTree
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"unsafe"
 )
 
@@ -96,6 +97,11 @@ func (node *InternalNode) SetParentNum(num int) {
 }
 
 func (node *InternalNode) UpdateKey(oldKey uint64, newKey uint64) {
+	// 判断key是否存在
+	if node.Cells[node.FindChildIdx(oldKey)].Key != oldKey {
+		fmt.Println("key not found")
+		return
+	}
 	cellIndex := node.FindChildIdx(oldKey)
 	node.Cells[cellIndex].Key = newKey
 }
@@ -110,8 +116,8 @@ func (node *InternalNode) FindChildIdx(key uint64) int {
 			minIndex = midIndex
 			break
 		}
-		if node.Cells[minIndex].Key > key {
-			maxIndex = minIndex
+		if node.Cells[midIndex].Key > key {
+			maxIndex = midIndex
 		} else {
 			minIndex = midIndex + 1
 		}

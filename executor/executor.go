@@ -36,6 +36,7 @@ func DoMetaCommand(inputBuffer *types.InputBuffer, t *table.Table) (MetaCommandR
 		if err != nil {
 			return 0, err
 		}
+		fmt.Println("bye.")
 		os.Exit(0)
 	case ".constants":
 		fmt.Println("Constants:")

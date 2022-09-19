@@ -18,7 +18,7 @@ def get_number():
 
 
 ns = []
-size = 50100
+size = 20
 for i, n in enumerate(get_number()):
     ns.append(f"insert {n} clz_{n} email_{n}")
     if i == size:
