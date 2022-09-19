@@ -4,6 +4,7 @@ import (
 	"com.fadinglight/db/BTree"
 	"com.fadinglight/db/table"
 	"errors"
+	"fmt"
 )
 
 /*
@@ -55,6 +56,7 @@ func (c *Cursor) Next() *BTree.Row {
 		if node.NextLeaf == 0 {
 			c.EndOfTable = true
 		} else {
+			fmt.Printf("page jump %d -> %d\n", c.PageNum, node.GetNextLeafNodeNum())
 			c.PageNum = node.GetNextLeafNodeNum()
 			c.CellNum = 0
 		}
@@ -172,6 +174,10 @@ func (c *Cursor) InsertLeafNode(key uint64, value *BTree.Row) error {
 	}
 	if int(page.CellNums) >= BTree.LEAF_NODE_MAX_CELLS {
 		// Page is full
+		// parent is full
+		//parentNode := c.Table.Pager.GetPage(int(page.ParentNum), 0)
+		//if (c.Table.Pager.GetPage(page.ParentNum, 0).    )) {}
+		// parent is not full
 		c.splitLeafNodeAndInsert(key, value)
 		return nil
 		//return errors.New("need to implement splitting a leaf node")
@@ -240,24 +246,24 @@ func (c *Cursor) splitLeafNodeAndInsert(key uint64, value *BTree.Row) {
 	if oldNode.IsRoot {
 		c.Table.CreateNewRoot(newPageNum)
 	} else {
+		// update internal node
 		oldNodeNewMaxKey := oldNode.GetMaxKey()
 		parentPageNum := oldNode.GetParentNum()
 		parentNode := c.Table.Pager.GetPage(parentPageNum, 0).Node.(*BTree.InternalNode)
 		parentNode.UpdateKey(oldNodeMaxKey, oldNodeNewMaxKey)
-
+		InsertChildNodeIntoInternalNode(c.Table, parentPageNum, newPageNum)
 	}
 }
 
 // InsertChildNodeIntoInternalNode InertChildNodeIntoInternalNode
-/*
- * TODO: 1. 判断parent是否已满; 2. 是否插入到最右侧; 3. 插入中间时移动右侧其他节点;
- */
+// 1. 判断parent是否已满; 2. 是否插入到最右侧; 3. 插入中间时移动右侧其他节点;
 func InsertChildNodeIntoInternalNode(t *table.Table, parentPageNum int, childPageNum int) {
 	parentNode := t.Pager.GetPage(parentPageNum, 0).Node.(*BTree.InternalNode)
 	child := t.Pager.GetPage(childPageNum, 0).Node
 
 	if parentNode.CellNums >= uint64(BTree.INTERNAL_NODE_MAX_CELLS) {
-		panic("Need to implement splitting internal node")
+		fmt.Println("Need to implement splitting internal node")
+		return
 	}
 
 	maxKey := child.GetMaxKey()
@@ -272,5 +278,14 @@ func InsertChildNodeIntoInternalNode(t *table.Table, parentPageNum int, childPag
 		parentNode.CellNums++
 	} else {
 		//  make room for the new cell
+		childIndex := parentNode.FindChildIdx(child.GetMaxKey())
+		for i := int(parentNode.CellNums); i > childIndex; i-- {
+			parentNode.Cells[i] = parentNode.Cells[i-1]
+		}
+		parentNode.Cells[childIndex] = BTree.InternalNodeCell{
+			ChildPointer: uint64(childPageNum),
+			Key:          child.GetMaxKey(),
+		}
+		parentNode.CellNums++
 	}
 }

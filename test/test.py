@@ -10,16 +10,25 @@ proc = subprocess.Popen("go run .",
                         )
 
 
-def get_i():
-    for i in range(5):
-        yield random.randint(i, i + 100)
+def get_number():
+    n = 0
+    while True:
+        n += 1
+        yield random.randint(n, n + 100)
 
 
-inputs = "\n".join(
-    [f"insert {i} clz_{i} email_{i}" for i in get_i()] + [".exit"]
-)
+ns = []
+size = 50100
+for i, n in enumerate(get_number()):
+    ns.append(f"insert {n} clz_{n} email_{n}")
+    if i == size:
+        break
+
+ns.append(".exit")
+
+inputs = "\n".join(ns)
 
 out, error = proc.communicate(input=inputs)
 
 print(out)
-# print(error)
+print(error)
