@@ -1,7 +1,7 @@
 package table
 
 import (
-	"com.fadinglight/db/BTree"
+	"com.fadinglight/db/btree"
 )
 
 type Table struct {

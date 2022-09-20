@@ -1,7 +1,7 @@
 package executor
 
 import (
-	"com.fadinglight/db/BTree"
+	"com.fadinglight/db/btree"
 	"com.fadinglight/db/cursor"
 	"com.fadinglight/db/table"
 	"com.fadinglight/db/types"

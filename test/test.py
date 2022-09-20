@@ -1,5 +1,12 @@
+import argparse
 import random
 import subprocess
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--number', '-n', type=int, default=20)
+
+args = parser.parse_args()
+size = args.number
 
 proc = subprocess.Popen("go run .",
                         encoding='utf-8',
@@ -18,7 +25,6 @@ def get_number():
 
 
 ns = []
-size = 20
 for i, n in enumerate(get_number()):
     ns.append(f"insert {n} clz_{n} email_{n}")
     if i == size:

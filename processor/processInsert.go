@@ -1,7 +1,7 @@
 package processor
 
 import (
-	"com.fadinglight/db/BTree"
+	"com.fadinglight/db/btree"
 	"com.fadinglight/db/types"
 	"errors"
 	"strconv"

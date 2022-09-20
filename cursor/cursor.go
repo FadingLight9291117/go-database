@@ -1,7 +1,7 @@
 package cursor
 
 import (
-	"com.fadinglight/db/BTree"
+	"com.fadinglight/db/btree"
 	"com.fadinglight/db/table"
 	"errors"
 	"fmt"

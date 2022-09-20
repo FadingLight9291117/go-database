@@ -1,48 +1,10 @@
-package main
+package sqlcompiler
 
 import (
 	"errors"
 	"strings"
 	"unicode"
 )
-
-/**
- * 1. 词法分析；
- * 2. 语法分析，构建AST - abstract syntax tree;
- */
-
-type SQL struct {
-	sql string
-	c   int
-}
-
-func NewSQL(sql string) SQL { return new(SQL).init() }
-
-func (sql SQL) init() SQL {
-	sql.c = 0
-	return sql
-}
-
-func (sql SQL) ToString() string {
-	return string(sql.sql)
-}
-
-func (sql SQL) nextToken() (Token, error) {
-	return Token{}, errors.New("no Token found")
-}
-
-type TokenType string
-
-type Token struct {
-	Type        TokenType
-	Literals    string
-	EndPosition string
-}
-
-// NewTokenizer 词法分析
-func NewTokenizer(sql string) ([]Token, error) {
-
-}
 
 type SelectStatement struct {
 	Table  string
@@ -51,8 +13,8 @@ type SelectStatement struct {
 type InsertStatement struct {
 }
 
-// Tokenizer 词法分析
-func Tokenizer(sql string) (interface{}, error) {
+// Tokenizer_ 词法分析
+func Tokenizer_(sql string) (interface{}, error) {
 	sql = strings.TrimSpace(sql)
 	switch strings.ToUpper(begin(sql)) {
 	case "SELECT":

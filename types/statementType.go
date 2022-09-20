@@ -1,7 +1,7 @@
 package types
 
 import (
-	"com.fadinglight/db/BTree"
+	"com.fadinglight/db/btree"
 )
 
 type StatementType byte
