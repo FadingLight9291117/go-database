@@ -11,11 +11,15 @@ const (
 
 type KeyWord uint8
 
+var keyWords = map[TokenType][]string{
+	KEYWORD: {"SELECT", "INSERT", "FROM"},
+	SYMBOL: {",", ";"},
+}
+
 const (
 	SELECT KeyWord = iota
 	FROM
 	WHERE
-
 	INSERT
 	INTO
 	VALUES
@@ -24,7 +28,7 @@ const (
 type Literals uint8
 
 const (
-	IDENTIFIER Literals = iota
+	IDENTIFIER Literals = iota + 20
 	INT
 	STRING
 )
