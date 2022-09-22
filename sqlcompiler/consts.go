@@ -11,9 +11,9 @@ const (
 
 type KeyWord uint8
 
-var keyWords = map[TokenType][]string{
+var tokenTypes = map[TokenType][]string{
 	KEYWORD: {"SELECT", "INSERT", "FROM"},
-	SYMBOL: {",", ";"},
+	SYMBOL:  {",", ";", "*"},
 }
 
 const (

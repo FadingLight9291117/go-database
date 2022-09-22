@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	sql := "SELECT id FROM table"
+	sql := "SELECT id, test FROM table;"
 	SQL := sqlcompiler.NewSQL(sql)
 
 	for !SQL.IsEnd() {

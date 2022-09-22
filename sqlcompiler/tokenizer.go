@@ -26,6 +26,10 @@ func (sql *SQL) NextToken() (*Token, error) {
 	sql.skipWhiteSpace()
 	if sql.isIdentifierBegin() {
 		return sql.scanIdentifier(), nil
+	} else if sql.isSymbol() {
+		return sql.scanSymbol(), nil
+	} else if sql.IsEnd() {
+		return sql.end(), nil
 	}
 	return nil, nil
 }
@@ -48,9 +52,26 @@ func (sql *SQL) isIdentifierBegin() bool {
 	return isAlphabet(sql.sql[sql.offset])
 }
 
+func (sql *SQL) isSymbol() bool {
+	for _, symbol := range tokenTypes[SYMBOL] {
+		if sql.sql[sql.offset] == symbol[0] {
+			return true
+		}
+	}
+	return false
+}
+
+func (sql *SQL) end() *Token {
+	return &Token{
+		Type:        ASSIST,
+		Literals:    "",
+		EndPosition: sql.offset,
+	}
+}
+
 func (sql *SQL) scanIdentifier() *Token {
 	length := 0
-	for sql.offset + length < len(sql.sql) && sql.sql[sql.offset+length] != ' ' {
+	for sql.offset+length < len(sql.sql) && isAlphabet(sql.sql[sql.offset+length]) {
 		length++
 	}
 	literals := sql.sql[sql.offset : sql.offset+length]
@@ -64,6 +85,16 @@ func (sql *SQL) scanIdentifier() *Token {
 	return token
 }
 
+func (sql *SQL) scanSymbol() *Token {
+	literals := sql.sql[sql.offset : sql.offset+1]
+	sql.offset++
+	return &Token{
+		Type:        SYMBOL,
+		Literals:    literals,
+		EndPosition: sql.offset,
+	}
+}
+
 type Token struct {
 	Type        TokenType
 	Literals    string
@@ -71,7 +102,7 @@ type Token struct {
 }
 
 func findTokenType(literals string, literalsType Literals) TokenType {
-	for _, keyword := range keyWords[KEYWORD] {
+	for _, keyword := range tokenTypes[KEYWORD] {
 		if strings.EqualFold(literals, keyword) {
 			return KEYWORD
 		}
