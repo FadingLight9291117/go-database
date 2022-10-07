@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "google.golang.org/grpc/sql";
+
+service Sql {
+  rpc Select(SelectRequest) returns (SelectResponse);
+}
+
+message SelectRequest {
+  string sql = 1;
+}
+
+message SelectResponse {
+  string results = 1;
+}
